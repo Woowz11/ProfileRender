@@ -134,7 +134,7 @@
 |     inv     | Инверсия иконки (1 она инвертированная)                                        |    0    |
 |     hue     | Поворот HUE в градусах (180 она инвертированная)                               |    0    |
 |    blur     | Блюр иконки в пикселях                                                         |    0    |
-|    tran     | TODO                                                                           |         |
+|    tran     | Трансформация (как в CSS)                                                      |         |
 
 | Параметр | Информация                                       |      Дефолт       |
 |:--------:|:-------------------------------------------------|:-----------------:|
@@ -176,9 +176,9 @@
 
 ![](https://profile-render-fawn.vercel.app/?type=icon&icon=git&bg=red)
 
-``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&bg=transparent``
+``https://profile-render-fawn.vercel.app/?type=icon&icon=android&bg=transparent``
 
-![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&bg=transparent)
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=android&bg=transparent)
 
 ``https://profile-render-fawn.vercel.app/?type=icon&icon=swift&rad=50``
 
@@ -188,9 +188,57 @@
 
 ![](https://profile-render-fawn.vercel.app/?type=icon&icon=ue&rot=180)
 
-``https://profile-render-fawn.vercel.app/?type=icon&icon=creeper&rot=90``
+``https://profile-render-fawn.vercel.app/?type=icon&icon=creeper&rot=-90``
 
-![](https://profile-render-fawn.vercel.app/?type=icon&icon=creeper&rot=90)
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=creeper&rot=-90)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=cobol&blur=10``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=cobol&blur=10)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=lua&hue=90``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=lua&hue=90)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=matlab&sat=100``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=matlab&sat=100)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=matlab&sat=0``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=matlab&sat=0)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=rust&inv=1``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=rust&inv=1)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=translateX(-35px)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=translateX(-35px))
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=translateY(-35px)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=translateY(-35px))
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=scale(0.5,0.5)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=scale(0.5,0.5))
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=scale(2,2)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=scale(2,2))
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=svg&tran=scale(-1,1)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=svg&tran=scale(-1,1))
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=rotate(90deg)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=rotate(90deg))
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=skew(-20deg,25deg)``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=ruby&tran=skew(-20deg,25deg))
 
 ``https://profile-render-fawn.vercel.app/?type=icons&icons=c,cpp,cs``
 
@@ -278,6 +326,8 @@
 ``https://profile-render-fawn.vercel.app/?type=debug``
 
 ![](https://profile-render-fawn.vercel.app/?type=debug)
+
+### debug=icons
 
 ``https://profile-render-fawn.vercel.app/?type=debug&debug=icons``
 

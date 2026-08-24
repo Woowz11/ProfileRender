@@ -70,15 +70,15 @@ module.exports = (Request, Result) => {
 
 				const Size = parseInt(QueryObject.size) || 75;
 				const Background = QueryObject.bg || "default";
-				const Radius = parseInt(QueryObject.rad) || 25;
 				const Rotate = parseInt(QueryObject.rot) || 0;
 				const Gap = parseInt(QueryObject.gap) || 5;
 				const MaxRow = parseInt(QueryObject.max_row) || 0;
 				const Transform = QueryObject.tran || "";
 				const Blur = parseFloat(QueryObject.blur) || 0;
 				const Invert = parseFloat(QueryObject.inv) || 0;
-				const Saturation = parseFloat(QueryObject.sat) || 1;
 				const RotateHUE = parseInt(QueryObject.hue) || 0;
+				const Radius = (QueryObject.rad !== undefined) ? parseInt(QueryObject.rad) : 25;
+				const Saturation = (QueryObject.sat !== undefined) ? parseFloat(QueryObject.sat) : 1;
 
 				const IconItems = SplitParams(RawInput).map((Item, Idx) => {
 					const Local = ParseLocalParams(Item, {
@@ -208,82 +208,98 @@ module.exports = (Request, Result) => {
 						IdToAliases[id].push(alias);
 					}
 
-					const RenderGroups = [];
+					const AllCategoryKeys = Object.keys(Categories).sort();
 					const CategorizedIds = new Set();
-					for (const [catName, ids] of Object.entries(Categories)) {
-						RenderGroups.push({ name: catName, ids: ids.sort() });
+					for (const ids of Object.values(Categories)) {
 						ids.forEach(id => CategorizedIds.add(id));
 					}
 
-					const Uncategorized = Object.keys(IdToAliases)
+					const UncategorizedIds = Object.keys(IdToAliases)
 						.filter(id => !CategorizedIds.has(id))
 						.sort();
-					if (Uncategorized.length > 0) RenderGroups.push({ name: "Прочие / Без категории", ids: Uncategorized });
 
-					const RowH = 90;
+					const Sections = [];
+					Sections.push({ type: "header" });
+					Sections.push({ type: "footer" });
+
+					AllCategoryKeys.forEach(name => {
+						Sections.push({ type: "category", name: name, ids: Categories[name].sort() });
+					});
+
+					if (UncategorizedIds.length > 0) {
+						Sections.push({ type: "category", name: "Прочие / Без категории", ids: UncategorizedIds });
+					}
+
+					const TargetIdx = parseInt(QueryObject.cat);
+					if (isNaN(TargetIdx) || !Sections[TargetIdx]) {
+						return `Некорректный индекс категории. Доступно: 0 (Шапка), 1 (Подвал), 2-${Sections.length - 1} (Категории)`;
+					}
+
+					const Section = Sections[TargetIdx];
+					const CanvasWidth = 780;
 					const IconSize = 75;
+					const RowH = 90;
 					const ColId = 20;
 					const ColAliases = 150;
 					const ColIconDef = 550;
 					const ColIconClean = 660;
-					const CanvasWidth = 780;
 
-					let Y = 70;
-					let SVGContent = "";
-					let Defs = "";
+					if (Section.type === "header") {
+						return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="60">
+							<rect width="100%" height="100%" fill="#0f0f0f" />
+							<text x="${ColId}" y="40" fill="#666" font-family="monospace" font-size="11" font-weight="bold">НАЗВАНИЕ ФАЙЛА SVG</text>
+							<text x="${ColAliases}" y="40" fill="#666" font-family="monospace" font-size="11" font-weight="bold">АЛИАСЫ / ИМЕНА ДЛЯ ВВОДА</text>
+							<text x="${ColIconDef}" y="40" fill="#666" font-family="monospace" font-size="11" font-weight="bold">bg=default</text>
+							<text x="${ColIconClean}" y="40" fill="#666" font-family="monospace" font-size="11" font-weight="bold">bg=transparent</text>
+							<line x1="0" y1="59" x2="${CanvasWidth}" y2="59" stroke="#ffffff" stroke-opacity="0.1" />
+						</svg>`;
+					}
 
-					RenderGroups.forEach(group => {
-						SVGContent += `<text x="${ColId}" y="${Y}" fill="#4fc3f7" font-family="monospace" font-size="20" font-weight="bold">${group.name.toUpperCase()}</text>`;
+					if (Section.type === "footer") {
+						return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="50">
+							<rect width="100%" height="100%" fill="#0f0f0f" />
+							<line x1="0" y1="0" x2="${CanvasWidth}" y2="0" stroke="#4fc3f7" stroke-opacity="0.3" />
+							<text x="${ColId}" y="30" fill="#4fc3f7" font-family="monospace" font-size="12">Всего уникальных иконок: ${Object.keys(IdToAliases).length}</text>
+						</svg>`;
+					}
+
+					if (Section.type === "category") {
+						let Y = 40;
+						let SVGContent = "";
+						let Defs = "";
+
+						SVGContent += `<text x="${ColId}" y="${Y}" fill="#4fc3f7" font-family="monospace" font-size="20" font-weight="bold">${Section.name.toUpperCase()}</text>`;
 						SVGContent += `<line x1="${ColId}" y1="${Y + 12}" x2="${CanvasWidth - 20}" y2="${Y + 12}" stroke="#4fc3f7" stroke-opacity="0.3" stroke-width="2" />`;
-						Y += 50;
+						Y += 30;
 
-						group.ids.forEach(id => {
+						Section.ids.forEach(id => {
 							const aliases = (IdToAliases[id] || []).join(", ");
 							const bgColor = FixColor(Bgs[id] || "white");
-
 							const rawSVG_def = GetIconSVG(id, `db_d_${id}`);
 							const rawSVG_cln = GetIconSVG(id, `db_c_${id}`);
-
 							const clipId = `c_${id}`;
+
 							Defs += `<clipPath id="${clipId}"><rect width="${IconSize}" height="${IconSize}" /></clipPath>`;
 
-							SVGContent += `
-            <g transform="translate(0, ${Y})">
-                <text x="${ColId}" y="42" fill="#ffffff" font-family="monospace" font-size="16" font-weight="bold">${id}.svg</text>
-                <text x="${ColAliases}" y="42" fill="#888" font-family="monospace" font-size="16">${aliases}</text>
-                
-                <svg x="${ColIconDef}" y="0" width="${IconSize}" height="${IconSize}">
-                    <rect width="100%" height="100%" fill="${bgColor}" />
-                    <g clip-path="url(#${clipId})">${rawSVG_def || ""}</g>
-                </svg>
-                
-                <svg x="${ColIconClean}" y="0" width="${IconSize}" height="${IconSize}">
-                    ${rawSVG_cln || ""}
-                </svg>
-                
-                <line x1="${ColId}" y1="85" x2="${CanvasWidth - 20}" y2="85" stroke="#ffffff" stroke-opacity="0.05" />
-            </g>`;
-							Y += RowH;
+							SVGContent += `<g transform="translate(0, ${Y})">
+								<text x="${ColId}" y="52" fill="#ffffff" font-family="monospace" font-size="16" font-weight="bold">${id}.svg</text>
+								<text x="${ColAliases}" y="52" fill="#888" font-family="monospace" font-size="16">${aliases}</text>
+								<svg x="${ColIconDef}" y="10" width="${IconSize}" height="${IconSize}">
+									<rect width="100%" height="100%" fill="${bgColor}" />
+									<g clip-path="url(#${clipId})">${rawSVG_def || ""}</g>
+								</svg>
+								<svg x="${ColIconClean}" y="10" width="${IconSize}" height="${IconSize}">${rawSVG_cln || ""}</svg>
+								<line x1="${ColId}" y1="95" x2="${CanvasWidth - 20}" y2="95" stroke="#ffffff" stroke-opacity="0.05" />
+							</g>`;
+							Y += RowH + 10;
 						});
-						Y += 40;
-					});
 
-					const TotalCanvasHeight = Y + 60;
-
-					return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${TotalCanvasHeight}">
-        <defs>${Defs}</defs>
-        <rect width="100%" height="100%" fill="#0f0f0f" />
-        
-        <text x="${ColId}" y="35" fill="#666" font-family="monospace" font-size="11" font-weight="bold">НАЗВАНИЕ ФАЙЛА SVG</text>
-        <text x="${ColAliases}" y="35" fill="#666" font-family="monospace" font-size="11" font-weight="bold">АЛИАСЫ / ИМЕНА ДЛЯ ВВОДА</text>
-        <text x="${ColIconDef}" y="35" fill="#666" font-family="monospace" font-size="11" font-weight="bold">bg=default</text>
-        <text x="${ColIconClean}" y="35" fill="#666" font-family="monospace" font-size="11" font-weight="bold">bg=transparent</text>
-        
-        ${SVGContent}
-        
-        <text x="${ColId}" y="${TotalCanvasHeight - 25}" fill="#4fc3f7" font-family="monospace" font-size="12">Всего уникальных иконок: ${Object.keys(IdToAliases).length}</text>
-    </svg>`;
+						return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${Y + 20}">
+							<defs>${Defs}</defs>
+							<rect width="100%" height="100%" fill="#0f0f0f" />
+							${SVGContent}
+						</svg>`;
+					}
 				}
 
 				return "Неизвестный тип \"debug\"!";
