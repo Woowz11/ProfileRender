@@ -130,15 +130,25 @@
 |     gap     | Отступы между иконками в пикселях                                              |    5    |
 |   max_row   | Максимальное кол-во иконок по горизонтале, потом переходит на следующую строку |    0    |
 |     rot     | Поворот иконки в градусах                                                      |    0    |
+|     sat     | Насыщеность иконки (0 она серая)                                               |    1    |
+|     inv     | Инверсия иконки (1 она инвертированная)                                        |    0    |
+|     hue     | Поворот HUE в градусах (180 она инвертированная)                               |    0    |
+|    blur     | Блюр иконки в пикселях                                                         |    0    |
+|    tran     | TODO                                                                           |         |
 
 | Параметр | Информация                                       |      Дефолт       |
 |:--------:|:-------------------------------------------------|:-----------------:|
 |   icon   | Иконка                                           |       error       |
-|   size   | Размер иконки в пикселях                         | Из параметра size |
-|    bg    | Цвет заднего фона                                |  Из параметра bg  |
-|   rad    | Радиус закругления в процентах (50 это круг)     | Из параметра rad  |
+|   size   | См. size                                         | Из параметра size |
+|    bg    | См. bg                                           |  Из параметра bg  |
+|   rad    | См. rad                                          | Из параметра rad  |
 |   tip    | Текст под иконкой (используется правило [ТЕКСТ]) |                   |
-|   rot    | Поворот иконки в градусах                        | Из параметра rot  |
+|   rot    | См. rot                                          | Из параметра rot  |
+|   sat    | См. sat                                          | Из параметра sat  |
+|   inv    | См. inv                                          | Из параметра inv  |
+|   hue    | См. hue                                          | Из параметра hue  |
+|   blur   | См. blur                                         | Из параметра blur |
+|   tran   | См. tran                                         | Из параметра tran |
 
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons)
 
@@ -217,6 +227,30 @@
 ``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,size=150},directx,twitch}``
 
 ![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,size=150},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,sat=0},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,sat=0},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,sat=10000},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,sat=10000},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,hue=180},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,hue=180},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,inv=1},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,inv=1},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,blur=5},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,blur=5},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,blur=5},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran=skew(30deg,20deg)},directx,twitch})
 
 ``https://profile-render-fawn.vercel.app/?type=icons&icons={{icon=njs,tip=TIPnbsp1},{icon=python,tip=TIPnbsp2}}``
 

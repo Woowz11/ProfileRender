@@ -63,18 +63,28 @@ const AutoCast = function(V){
 const ParseLocalParams = function(S, Defaults = {}, PrimaryKey = "value"){
     S = String(S || "").trim();
     const Result = { ...Defaults };
+
     if(!S.startsWith('{')){
         Result[PrimaryKey] = S;
         return Result;
     }
+
     S = S.replace(/^{(.*)}$/, "$1");
-    const Pairs = S.split(/,(?![^{]*})/);
+
+    const Pairs = S.split(/,(?![^{]*})(?![^\(]*\))/);
+
     Pairs.forEach((Pair, Index) => {
        let [Key, Value] = Pair.split("=").map(S => S.trim());
+
        if(Key && Value !== undefined){
+           Value = Value.replace(/^["'](.*)["']$/, "$1")
            Result[Key] = AutoCast(Value);
        }else if(Key && Value === undefined){
-           if(Index === 0){ Result[PrimaryKey] = AutoCast(Key); }else{ Result[Key] = true; }
+           if(Index === 0){
+               Result[PrimaryKey] = AutoCast(Key);
+           }else{
+               Result[Key] = true;
+           }
        }
     });
     return Result;
