@@ -147,12 +147,17 @@ module.exports = (Request, Result) => {
 						if(Icon.sat !== 1){ Filters.push(`saturate(${Icon.sat})`); }
 						if(Icon.hue !== 0){ Filters.push(`hue-rotate(${Icon.hue}deg)`); }
 
-						const FilterStyle = Filters.length > 0 ? `style="filter: ${Filters.join(" ")}"` : "";
+						const Transforms = [];
+						if(Icon.rot){ Transforms.push(`rotate(${Icon.rot}deg)`); }
+						if(Icon.tran){ Transforms.push(Icon.tran); }
 
-						const TransformList = [];
-						if(Icon.rot){ TransformList.push(`rotate(${Icon.rot} ${Icon.size / 2} ${Icon.size / 2})`); }
-						if(Icon.tran){ TransformList.push(Icon.tran); }
-						const TransformAttribute = TransformList.length > 0 ? `transform="${TransformList.join(" ")}"` : "";
+						const CombinedStyle = [
+							Filters.length > 0 ? `filter: ${Filters.join(" ")}` : "",
+							Transforms.length > 0 ? `transform: ${Transforms.join(" ")}` : "",
+							Transforms.length > 0 ? `transform-box: fill-box` : "",
+							Transforms.length > 0 ? `transform-origin: center}` : ""
+						].filter(Boolean).join("; ");
+						const StyleAttribute = CombinedStyle ? `style="${CombinedStyle}"` : "";
 
 						let ClipAttribute = "";
 						if(Icon.rad > 0){
@@ -165,7 +170,7 @@ module.exports = (Request, Result) => {
 <svg x="${CurrentX}" y="${CurrentY}" width="${Icon.size}" height="${Icon.size}">
 	<g ${ClipAttribute}>
 		${BGRect}
-		<g ${TransformAttribute} ${FilterStyle}>
+		<g ${StyleAttribute}>
 			${Icon.SVGData || ""}
 		</g>
 	</g>
