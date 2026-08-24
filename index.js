@@ -39,7 +39,7 @@ module.exports = (Request, Result) => {
 
 		function Run(){
 			if(Type === "notype"){
-				return "Не указан тип";
+				return "Не указан \"type\"";
 			}
 
 			if(Type === "simple"){
@@ -198,14 +198,14 @@ module.exports = (Request, Result) => {
 				const Debug = QueryObject.debug;
 
 				if(Debug === "icons"){
-					const Names = IconsInfo.Names || {};
-					const Categories = IconsInfo.Categories || {};
-					const Bgs = IconsInfo.Backgrounds || {};
+					const Names = IconsInfo["Names"] || {};
+					const Categories = IconsInfo["Categories"] || {};
+					const Bgs = IconsInfo["Backgrounds"] || {};
 
 					const IdToAliases = {};
 					const AllUniqueIdsInOrder = [];
 
-					for (const [alias, id] of Object.entries(Names)) {
+					for(const [alias, id] of Object.entries(Names)){
 						if (!IdToAliases[id]) {
 							IdToAliases[id] = [];
 							AllUniqueIdsInOrder.push(id);
@@ -225,22 +225,24 @@ module.exports = (Request, Result) => {
 					const Sections = [];
 					Sections.push({ type: "header" });
 					Sections.push({ type: "footer" });
+					Sections.push({ type: "category", name: "Без категории", ids: UncategorizedIds });
 
 					CategoryKeys.forEach(name => {
 						Sections.push({ type: "category", name: name, ids: Categories[name] });
 					});
 
-					if (UncategorizedIds.length > 0) {
-						Sections.push({ type: "category", name: "Прочие / Без категории", ids: UncategorizedIds });
-					}
-
 					const TargetIdx = parseInt(QueryObject.cat);
-					if (isNaN(TargetIdx) || !Sections[TargetIdx]) {
+					if(isNaN(TargetIdx) || !Sections[TargetIdx]){
 						const available = Sections.map((s, i) => `${i}: ${s.name || s.type}`).join(", ");
 						return `Некорректный индекс категории. Доступно: ${available}`;
 					}
 
 					const Section = Sections[TargetIdx];
+
+					if (TargetIdx === 2 && (!Section.ids || Section.ids.length === 0)) {
+						return `<svg xmlns="http://www.w3.org/2000/svg" width="780" height="1" style="opacity:0"></svg>`;
+					}
+
 					const CanvasWidth = 780;
 					const IconSize = 75;
 					const RowH = 90;
@@ -249,7 +251,7 @@ module.exports = (Request, Result) => {
 					const ColIconDef = 550;
 					const ColIconClean = 660;
 
-					if (Section.type === "header") {
+					if(Section.type === "header"){
 						return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="60">
 							<rect width="100%" height="100%" fill="#0f0f0f" />
 							<text x="${ColId}" y="40" fill="#666" font-family="monospace" font-size="11" font-weight="bold">НАЗВАНИЕ ФАЙЛА SVG</text>
@@ -260,7 +262,7 @@ module.exports = (Request, Result) => {
 						</svg>`;
 					}
 
-					if (Section.type === "footer") {
+					if(Section.type === "footer"){
 						return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="50">
 							<rect width="100%" height="100%" fill="#0f0f0f" />
 							<line x1="0" y1="0" x2="${CanvasWidth}" y2="0" stroke="#4fc3f7" stroke-opacity="0.3" />
@@ -268,7 +270,7 @@ module.exports = (Request, Result) => {
 						</svg>`;
 					}
 
-					if (Section.type === "category") {
+					if(Section.type === "category"){
 						let Y = 40;
 						let SVGContent = "";
 						let Defs = "";

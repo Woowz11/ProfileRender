@@ -65,7 +65,7 @@
 
 # Типы
 
-## notype
+## type=notype
 
 ``https://profile-render-fawn.vercel.app/?type=notype``
 
@@ -97,7 +97,7 @@
 
 ![](https://profile-render-fawn.vercel.app/?type=simple&text=%D0%AD%D0%BC%D0%BE%D0%B4%D0%B7%D0%B8nbsp-%3Enbsp%F0%9F%99%84)
 
-## js
+## type=js
 
 | Параметр | Информация                                                                                     |                        Дефолт                        |
 |:--------:|:-----------------------------------------------------------------------------------------------|:----------------------------------------------------:|
@@ -119,7 +119,7 @@
 
 ![](https://profile-render-fawn.vercel.app/?type=js&code=dGhyb3cgbmV3IEVycm9yKCLQn9GA0LjQvNC10YAg0L7RiNC40LHQutC4Iik=)
 
-## icon, icons
+## type=icon || type=icons
 
 |  Параметр   | Информация                                                                     | Дефолт  |
 |:-----------:|:-------------------------------------------------------------------------------|:-------:|
@@ -151,7 +151,6 @@
 |   tran   | См. tran                                         | Из параметра tran |
 
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=0)
-![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=2)
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=3)
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=4)
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=5)
@@ -170,6 +169,8 @@
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=18)
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=19)
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=20)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=21)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=2)
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=1)
 
 ``https://profile-render-fawn.vercel.app/?type=icon``
@@ -203,6 +204,10 @@
 ``https://profile-render-fawn.vercel.app/?type=icon&icon=swift&rad=50``
 
 ![](https://profile-render-fawn.vercel.app/?type=icon&icon=swift&rad=50)
+
+``https://profile-render-fawn.vercel.app/?type=icon&icon=swift&rad=0``
+
+![](https://profile-render-fawn.vercel.app/?type=icon&icon=swift&rad=0)
 
 ``https://profile-render-fawn.vercel.app/?type=icon&icon=ue&rot=180``
 
