@@ -150,7 +150,27 @@
 |   blur   | См. blur                                         | Из параметра blur |
 |   tran   | См. tran                                         | Из параметра tran |
 
-![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=0)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=2)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=3)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=4)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=5)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=6)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=7)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=8)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=9)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=10)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=11)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=12)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=13)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=14)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=15)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=16)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=17)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=18)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=19)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=20)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=1)
 
 ``https://profile-render-fawn.vercel.app/?type=icon``
 
@@ -329,6 +349,22 @@
 
 ### debug=icons
 
+| Параметр | Информация      | Дефолт |
+|:--------:|:----------------|:------:|
+|   cat    | Категория icons |        |
+
 ``https://profile-render-fawn.vercel.app/?type=debug&debug=icons``
 
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons)
+
+``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=0``
+
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=0)
+
+``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=1``
+
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=1)
+
+``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=5``
+
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=5)

@@ -203,27 +203,31 @@ module.exports = (Request, Result) => {
 					const Bgs = IconsInfo.Backgrounds || {};
 
 					const IdToAliases = {};
+					const AllUniqueIdsInOrder = [];
+
 					for (const [alias, id] of Object.entries(Names)) {
-						if (!IdToAliases[id]) IdToAliases[id] = [];
+						if (!IdToAliases[id]) {
+							IdToAliases[id] = [];
+							AllUniqueIdsInOrder.push(id);
+						}
 						IdToAliases[id].push(alias);
 					}
 
-					const AllCategoryKeys = Object.keys(Categories).sort();
 					const CategorizedIds = new Set();
-					for (const ids of Object.values(Categories)) {
-						ids.forEach(id => CategorizedIds.add(id));
-					}
+					const CategoryKeys = Object.keys(Categories);
 
-					const UncategorizedIds = Object.keys(IdToAliases)
-						.filter(id => !CategorizedIds.has(id))
-						.sort();
+					CategoryKeys.forEach(name => {
+						Categories[name].forEach(id => CategorizedIds.add(id));
+					});
+
+					const UncategorizedIds = AllUniqueIdsInOrder.filter(id => !CategorizedIds.has(id));
 
 					const Sections = [];
 					Sections.push({ type: "header" });
 					Sections.push({ type: "footer" });
 
-					AllCategoryKeys.forEach(name => {
-						Sections.push({ type: "category", name: name, ids: Categories[name].sort() });
+					CategoryKeys.forEach(name => {
+						Sections.push({ type: "category", name: name, ids: Categories[name] });
 					});
 
 					if (UncategorizedIds.length > 0) {
@@ -232,7 +236,8 @@ module.exports = (Request, Result) => {
 
 					const TargetIdx = parseInt(QueryObject.cat);
 					if (isNaN(TargetIdx) || !Sections[TargetIdx]) {
-						return `Некорректный индекс категории. Доступно: 0 (Шапка), 1 (Подвал), 2-${Sections.length - 1} (Категории)`;
+						const available = Sections.map((s, i) => `${i}: ${s.name || s.type}`).join(", ");
+						return `Некорректный индекс категории. Доступно: ${available}`;
 					}
 
 					const Section = Sections[TargetIdx];
@@ -259,7 +264,7 @@ module.exports = (Request, Result) => {
 						return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="50">
 							<rect width="100%" height="100%" fill="#0f0f0f" />
 							<line x1="0" y1="0" x2="${CanvasWidth}" y2="0" stroke="#4fc3f7" stroke-opacity="0.3" />
-							<text x="${ColId}" y="30" fill="#4fc3f7" font-family="monospace" font-size="12">Всего уникальных иконок: ${Object.keys(IdToAliases).length}</text>
+							<text x="${ColId}" y="30" fill="#4fc3f7" font-family="monospace" font-size="12">Всего уникальных иконок: ${AllUniqueIdsInOrder.length}</text>
 						</svg>`;
 					}
 
