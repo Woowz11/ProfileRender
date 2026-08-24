@@ -370,6 +370,10 @@
 
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=1)
 
-``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=5``
+``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=2``
 
-![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=5)
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=2)
+
+``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=6``
+
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=6)

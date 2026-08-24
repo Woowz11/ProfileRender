@@ -233,8 +233,8 @@ module.exports = (Request, Result) => {
 
 					const TargetIdx = parseInt(QueryObject.cat);
 					if(isNaN(TargetIdx) || !Sections[TargetIdx]){
-						const available = Sections.map((s, i) => `${i}: ${s.name || s.type}`).join(", ");
-						return `Некорректный индекс категории. Доступно: ${available}`;
+						const available = Sections.map((s, i) => `${i}: ${s.name || s.type}`).join(",\n");
+						return `Не указан \"cat\", или некорректный индекс категории. Доступно:\n${available}`;
 					}
 
 					const Section = Sections[TargetIdx];
