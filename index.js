@@ -155,7 +155,7 @@ module.exports = (Request, Result) => {
 							Filters.length > 0 ? `filter: ${Filters.join(" ")}` : "",
 							Transforms.length > 0 ? `transform: ${Transforms.join(" ")}` : "",
 							Transforms.length > 0 ? `transform-box: fill-box` : "",
-							Transforms.length > 0 ? `transform-origin: center}` : ""
+							Transforms.length > 0 ? `transform-origin: center` : ""
 						].filter(Boolean).join("; ");
 						const StyleAttribute = CombinedStyle ? `style="${CombinedStyle}"` : "";
 

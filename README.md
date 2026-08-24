@@ -248,9 +248,17 @@
 
 ![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,blur=5},directx,twitch})
 
-``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,blur=5},directx,twitch}``
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran="translateX(40px)"},directx,twitch}``
 
-![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran=skew(30deg,20deg)},directx,twitch})
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran=translateX(40px)},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran="scale(0.5,0.5)"},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran=scale(0.5,0.5)},directx,twitch})
+
+``https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran="skew(20deg,30deg)"},directx,twitch}``
+
+![](https://profile-render-fawn.vercel.app/?type=icons&icons={microsoft,{icon=google,tran=skew(20deg,30deg)},directx,twitch})
 
 ``https://profile-render-fawn.vercel.app/?type=icons&icons={{icon=njs,tip=TIPnbsp1},{icon=python,tip=TIPnbsp2}}``
 
