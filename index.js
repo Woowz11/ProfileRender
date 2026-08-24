@@ -68,19 +68,29 @@ module.exports = (Request, Result) => {
 				const RawInput = QueryObject.icons || QueryObject.icon || "";
 				if(!RawInput){ return "Не указаны \"icon\" или \"icons\""; }
 
-				const GlobalSize = parseInt(QueryObject.size) || 75;
-				const GlobalBackground = QueryObject.bg || "default";
-				const GlobalRadius = parseInt(QueryObject.rad) || 25;
-				const GlobalRotate = parseInt(QueryObject.rot) || 0;
+				const Size = parseInt(QueryObject.size) || 75;
+				const Background = QueryObject.bg || "default";
+				const Radius = parseInt(QueryObject.rad) || 25;
+				const Rotate = parseInt(QueryObject.rot) || 0;
 				const Gap = parseInt(QueryObject.gap) || 5;
 				const MaxRow = parseInt(QueryObject.max_row) || 0;
+				const Transform = QueryObject.tran || "";
+				const Blur = parseFloat(QueryObject.blur) || 0;
+				const Invert = parseFloat(QueryObject.inv) || 0;
+				const Saturation = parseFloat(QueryObject.sat) || 1;
+				const RotateHUE = parseInt(QueryObject.hue) || 0;
 
 				const IconItems = SplitParams(RawInput).map((Item, Idx) => {
 					const Local = ParseLocalParams(Item, {
-						size: GlobalSize,
-						bg: GlobalBackground,
-						rad: GlobalRadius,
-						rot: GlobalRotate,
+						size: Size,
+						bg: Background,
+						rad: Radius,
+						rot: Rotate,
+						tran: Transform,
+						blur: Blur,
+						inv: Invert,
+						sat: Saturation,
+						hue: RotateHUE,
 						tip: ""
 					}, "icon");
 
@@ -131,7 +141,18 @@ module.exports = (Request, Result) => {
 
 						const BGRect = (BGColor && BGColor !== "transparent") ? `<rect width="${Icon.size}" height="${Icon.size}" fill="${BGColor}" rx="${RX}" />` : "";
 
-						const Rotation = Icon.rot ? `transform="rotate(${Icon.rot} ${Icon.size / 2} ${Icon.size / 2})"` : "";
+						const Filters = [];
+						if(Icon.blur  > 0){ Filters.push(`blur(${Icon.blur}px)`); }
+						if(Icon.inv   > 0){ Filters.push(`invert(${Icon.inv})`); }
+						if(Icon.sat !== 1){ Filters.push(`saturate(${Icon.sat})`); }
+						if(Icon.hue !== 0){ Filters.push(`hue-rotate(${Icon.hue}deg)`); }
+
+						const FilterStyle = Filters.length > 0 ? `style="filter: ${Filters.join(" ")}"` : "";
+
+						const TransformList = [];
+						if(Icon.rot){ TransformList.push(`rotate(${Icon.rot} ${Icon.size / 2} ${Icon.size / 2})`); }
+						if(Icon.tran){ TransformList.push(Icon.tran); }
+						const TransformAttribute = TransformList.length > 0 ? `transform="${TransformList.join(" ")}"` : "";
 
 						let ClipAttribute = "";
 						if(Icon.rad > 0){
@@ -140,7 +161,15 @@ module.exports = (Request, Result) => {
 							ClipAttribute = `clip-path="url(#${ClipID})"`;
 						}
 
-						SVGContent += `<svg x="${CurrentX}" y="${CurrentY}" width="${Icon.size}" height="${Icon.size}"><g ${ClipAttribute}>${BGRect}<g ${Rotation}>${Icon.SVGData || ""}</g></g></svg>`;
+						SVGContent += `
+<svg x="${CurrentX}" y="${CurrentY}" width="${Icon.size}" height="${Icon.size}">
+	<g ${ClipAttribute}>
+		${BGRect}
+		<g ${TransformAttribute} ${FilterStyle}>
+			${Icon.SVGData || ""}
+		</g>
+	</g>
+</svg>`;
 
 						if(Icon.tip){
 							const TextX = CurrentX + (Icon.size / 2);

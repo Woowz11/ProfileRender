@@ -359,6 +359,7 @@
 		"Библиотеки"               : ["opengl", "vulkan", "bullet", "directx", "glfw", "box2d", "hibernate"],
 		"Компании"                 : ["microsoft", "google", "nvidia", "apple", "redhat"],
 		"ИИ"                       : ["chatgpt", "deepseek"],
+		"Фигуры"                   : [],
 		"Приколы"                  : ["render", "troll", "creeper", "golu"],
 		"Остальное"                : ["error", "blank"]
 	}
