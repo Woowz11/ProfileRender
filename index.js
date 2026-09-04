@@ -196,43 +196,49 @@ module.exports = (Request, Result) => {
 			}
 
             if(Type === "timer"){
+                // 1. Обработка даты и часового пояса
                 let targetRaw = QueryObject.target || "";
-                if (targetRaw.includes('T')) {
-                    let parts = targetRaw.split('T');
-                    let time = parts[1].split(':').map(p => p.padStart(2, '0')).join(':');
-                    targetRaw = parts[0] + 'T' + time;
-                }
+
+                // Исправляем проблему: в URL "+" часто превращается в пробел
+                // Это важно для таймзон типа +03:00
+                targetRaw = targetRaw.replace(/\s/g, "+");
+
+                // Если даты нет, или она кривая
+                if (!targetRaw) return "Укажите target=ГГГГ-ММ-ДДTЧЧ:ММ:SS";
 
                 const TargetDate = new Date(targetRaw);
                 const Now = new Date();
 
-                // Проверка на валидность даты
                 if (isNaN(TargetDate.getTime())) {
-                    return "Ошибка: Неверный формат даты.\nИспользуйте ГГГГ-ММ-ДДTЧЧ:ММ:СС";
+                    return "Ошибка: Неверный формат даты.\nИспользуйте: 2026-09-06T00:10:00%2B03:00";
                 }
 
-                let Diff = TargetDate - Now;
+                const Diff = TargetDate.getTime() - Now.getTime();
 
                 // Если время уже вышло
-                if (Diff <= 0 && (QueryObject.onend === "text")) {
-                    return EscapeText(QueryObject.ext_text || "Время истекло");
+                if (Diff <= 0) {
+                    if (QueryObject.onend === "text") {
+                        return EscapeText(QueryObject.ext_text || "Время истекло");
+                    }
+                    // Если не text, просто сбросим Diff в 0, чтобы не было NaN
                 }
 
                 const TotalSeconds = Math.max(0, Math.floor(Diff / 1000));
+
                 const Days = Math.floor(TotalSeconds / 86400);
                 const Hours = Math.floor((TotalSeconds % 86400) / 3600);
                 const Minutes = Math.floor((TotalSeconds % 3600) / 60);
                 const Seconds = TotalSeconds % 60;
 
-                // Стили из опций (увеличиваем дефолтный шрифт для таймера)
+                // Стили
                 const BG = FixColor(Options.Background);
                 const Color = FixColor(Options.Color);
-                const FS = parseInt(QueryObject.t_fs) || 40; // По умолчанию 40 для таймера
+                const FS = parseInt(QueryObject.t_fs) || 40;
                 const Width = parseInt(QueryObject.t_w) || 450;
                 const Height = parseInt(QueryObject.t_h) || 150;
                 const Title = QueryObject.desc || "До события осталось:";
 
-                // Генерируем шаги для секунд
+                // Генерация анимации
                 let secKeyframes = "";
                 for (let i = 0; i <= 60; i++) {
                     let val = Seconds - i;
@@ -240,7 +246,6 @@ module.exports = (Request, Result) => {
                     secKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${String(val).padStart(2, '0')}" }\n`;
                 }
 
-                // Генерируем шаги для минут
                 let minKeyframes = "";
                 for (let i = 0; i <= 60; i++) {
                     let val = Minutes - i;
@@ -255,54 +260,47 @@ module.exports = (Request, Result) => {
             .container {
                 background: ${BG};
                 color: ${Color};
-                font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                 height: 100%;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                border-radius: 10px;
+                border-radius: 12px;
                 text-align: center;
-                padding: 10px;
-                box-sizing: border-box;
+                border: 1px solid rgba(255,255,255,0.1);
             }
             .title { 
                 font-size: ${Math.floor(FS * 0.4)}px; 
-                opacity: 0.9; 
-                margin-bottom: 10px;
-                text-transform: uppercase;
-                letter-spacing: 1px;
+                opacity: 0.7; 
+                margin-bottom: 8px;
+                font-weight: 500;
             }
             .timer { 
                 font-size: ${FS}px; 
                 font-weight: 800;
-                display: flex;
-                gap: 5px;
+                font-family: ui-monospace, 'Cascadia Code', monospace;
             }
-            .unit { display: inline-block; }
-            
             .days::after { content: "${Days}"; }
             .hours::after { content: "${String(Hours).padStart(2, '0')}"; }
-            
-            .seconds::after {
-                content: "${String(Seconds).padStart(2, '0')}";
-                animation: countdown-sec 60s step-end infinite;
-            }
             .minutes::after {
                 content: "${String(Minutes).padStart(2, '0')}";
                 animation: countdown-min 3600s step-end infinite;
             }
-
+            .seconds::after {
+                content: "${String(Seconds).padStart(2, '0')}";
+                animation: countdown-sec 60s step-end infinite;
+            }
             @keyframes countdown-sec { ${secKeyframes} }
             @keyframes countdown-min { ${minKeyframes} }
         </style>
         <div xmlns="http://www.w3.org/1999/xhtml" class="container">
             <div class="title">${EscapeXML(Title)}</div>
             <div class="timer">
-                <span class="unit"><span class="days"></span>d</span>
-                <span class="unit"><span class="hours"></span>h</span>
-                <span class="unit"><span class="minutes"></span>m</span>
-                <span class="unit"><span class="seconds"></span>s</span>
+                <span class="days"></span>d 
+                <span class="hours"></span>h 
+                <span class="minutes"></span>m 
+                <span class="seconds"></span>s
             </div>
         </div>
     </foreignObject>
