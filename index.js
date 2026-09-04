@@ -1,4 +1,3 @@
-const URL = require("url");
 const VM = require("vm");
 
 const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog, RequestLogs } = require("./global.js");
