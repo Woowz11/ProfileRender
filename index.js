@@ -426,44 +426,33 @@ module.exports = async (Request, Result) => {
 						</svg>`;
 					}
 				}else if(Debug === "trace"){
-                    const IP = Request.headers["x-forwarded-for"] || Request.socket.remoteAddress;
-                    const Ref = Request.headers["referer"] || Request.headers["referrer"] || "Не передано (Direct)";
-                    const UA = Request.headers["user-agent"] || "Unknown Agent";
-                    const Origin = Request.headers["origin"] || "Не передано";
+                    const CanvasWidth = 800;
+                    const Headers = Request.headers;
+                    let Y = 70;
+                    let HeadersContent = "";
 
-                    let Provider = "Обычный браузер";
-                    if (UA.toLowerCase().includes("github-camo")) Provider = "GitHub Proxy (Camo)";
-                    if (UA.toLowerCase().includes("vercel")) Provider = "Vercel Edge";
-
-                    const CanvasWidth = 500;
-                    const CanvasHeight = 220;
+                    Object.entries(Headers).forEach(([key, value]) => {
+                        HeadersContent += `
+                        <g transform="translate(0, ${Y})">
+                            <text x="20" y="0" fill="#4fc3f7" font-family="monospace" font-size="10">${key.toUpperCase()}:</text>
+                            <text x="180" y="0" fill="#aaa" font-family="monospace" font-size="10">${EscapeXML(value).substring(0, 90)}</text>
+                        </g>`;
+                        Y += 15;
+                    });
 
                     return `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${CanvasHeight}">
-                        <rect width="100%" height="100%" fill="#1a1a1a" rx="10" stroke="#4fc3f7" stroke-width="2"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${Y + 40}">
+                        <rect width="100%" height="100%" fill="#0f0f0f" rx="10"/>
+                        <text x="20" y="35" fill="#fff" font-family="monospace" font-size="20" font-weight="bold">HTTP HEADERS TRACE</text>
+                        <text x="20" y="55" fill="#666" font-family="monospace" font-size="10">Этот список показывает всё, что ваш браузер/сайт сообщил серверу:</text>
+                        <line x1="20" y1="60" x2="${CanvasWidth-20}" y2="60" stroke="#333" />
                         
-                        <text x="20" y="35" fill="#4fc3f7" font-family="monospace" font-size="18" font-weight="bold">DIAGNOSTIC TRACE</text>
-                        <line x1="20" y1="45" x2="${CanvasWidth-20}" y2="45" stroke="#333" />
+                        ${HeadersContent}
                         
-                        <g font-family="monospace" font-size="12">
-                            <text x="20" y="70" fill="#888">Detected Source (Referer):</text>
-                            <text x="20" y="85" fill="#fff">${EscapeXML(Ref)}</text>
-                            
-                            <text x="20" y="110" fill="#888">Origin Header:</text>
-                            <text x="20" y="125" fill="#fff">${EscapeXML(Origin)}</text>
-                            
-                            <text x="20" y="150" fill="#888">Request Provider:</text>
-                            <text x="20" y="165" fill="#4caf50" font-weight="bold">${Provider}</text>
-                            
-                            <text x="20" y="190" fill="#555" font-size="10">IP: ${IP.substring(0, 15)}... | UA: ${UA.substring(0, 30)}...</text>
-                        </g>
-
-                        ${Ref.includes("github.com") ? `
-                            <rect x="320" y="145" width="160" height="45" fill="#332b00" rx="5" />
-                            <text x="330" y="162" fill="#ffeb3b" font-family="monospace" font-size="9" font-weight="bold">GITHUB PRIVACY:</text>
-                            <text x="330" y="175" fill="#ffeb3b" font-family="monospace" font-size="8">Full path is hidden</text>
-                            <text x="330" y="185" fill="#ffeb3b" font-family="monospace" font-size="8">by Camo Proxy.</text>
-                        ` : ""}
+                        <line x1="20" y1="${Y+10}" x2="${CanvasWidth-20}" y2="${Y+10}" stroke="#333" />
+                        <text x="20" y="${Y+25}" fill="#ffeb3b" font-family="monospace" font-size="10" font-weight="bold">
+                            СОВЕТ: Если тут нет ссылки на сайт, значит сайт (например GitHub) намеренно её скрывает.
+                        </text>
                     </svg>`;
                 }else if(Debug === "history") {
                     const CanvasWidth = 1000;
