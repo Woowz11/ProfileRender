@@ -27,8 +27,6 @@ module.exports = (Request, Result) => {
         Result.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
         Result.setHeader("Pragma", "no-cache");
         Result.setHeader("Expires", "0");
-
-        function EnableRefresh(){ Result.setHeader("Refresh", "1"); }
         
 		let Options = { ...DefaultOptions };
 
@@ -200,59 +198,95 @@ module.exports = (Request, Result) => {
             if(Type === "timer"){
                 const TargetDate = QueryObject.target ? new Date(QueryObject.target) : new Date();
                 const Now = new Date();
-                
-                const Mode = QueryObject.mode || "remain";
-                
-                let Format = QueryObject.fmt || "%D:%H:%M:%S";
-                
-                const OnEnd = QueryObject.onend || "minus";
-                const ExpiredText = QueryObject.ext_text || "Время истекло";
-                
-                let Diff = TargetDate - Now;
-                const IsExpired = Diff <= 0;
-                
-                if(IsExpired && OnEnd === "text"){
-                    return EscapeText(ExpiredText);
+                const Diff = TargetDate - Now;
+
+                // Если время уже вышло
+                if (Diff <= 0 && (QueryObject.onend === "text")) {
+                    return EscapeText(QueryObject.ext_text || "Время истекло");
                 }
 
-                EnableRefresh();
-                
-                if(Mode === "elapsed"){
-                    Diff = Now - TargetDate;
+                const TotalSeconds = Math.max(0, Math.floor(Diff / 1000));
+                const Days = Math.floor(TotalSeconds / 86400);
+                const Hours = Math.floor((TotalSeconds % 86400) / 3600);
+                const Minutes = Math.floor((TotalSeconds % 3600) / 60);
+                const Seconds = TotalSeconds % 60;
+
+                // Стили из опций
+                const BG = FixColor(Options.Background);
+                const Color = FixColor(Options.Color);
+                const FS = Options.FontSize || 20;
+                const Width = Options.Width || 400;
+                const Height = Options.Height || 120;
+                const Title = QueryObject.desc || "До события осталось:";
+
+                // Генерируем шаги для секунд (от 59 до 0)
+                let secKeyframes = "";
+                for (let i = 0; i <= 60; i++) {
+                    let val = Seconds - i;
+                    if (val < 0) val += 60;
+                    secKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${val}" }\n`;
                 }
-                
-                const AbsDiff = Math.abs(Diff);
-                
-                const TSeconds = Math.floor(AbsDiff / 1000);
-                const TMinutes = Math.floor(TSeconds / 60);
-                const THours = Math.floor(TMinutes / 60);
-                const TDays = Math.floor(THours / 24);
-                
-                const Seconds = TSeconds % 60;
-                const Minutes = TMinutes % 60;
-                const Hours = THours % 24;
-                
-                let TimeString = Format;
-                
-                if(Mode === "total_s"){
-                    TimeString = String(TSeconds);
-                }else if(Mode === "total_m"){
-                    TimeString = String(TMinutes);
-                }else{
-                    TimeString = TimeString
-                        .replace(/%D/g, TDays)
-                        .replace(/%H/g, String(Hours).padStart(2, "0"))
-                        .replace(/%M/g, String(Minutes).padStart(2, "0"))
-                        .replace(/%S/g, String(Seconds).padStart(2, "0"))
+
+                // Генерируем шаги для минут (от 59 до 0)
+                let minKeyframes = "";
+                for (let i = 0; i <= 60; i++) {
+                    let val = Minutes - i;
+                    if (val < 0) val += 60;
+                    minKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${val}" }\n`;
                 }
-                
-                if(IsExpired && OnEnd === "minus" && Mode === "remain"){
-                    TimeString = "-" + TimeString;
+
+                // Собираем SVG с ForeignObject для использования CSS анимаций
+                return `
+    <svg fill="none" width="${Width}" height="${Height}" viewBox="0 0 ${Width} ${Height}" xmlns="http://www.w3.org/2000/svg">
+        <foreignObject width="100%" height="100%">
+            <style>
+                .container {
+                    background: ${BG};
+                    color: ${Color};
+                    font-family: monospace;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 8px;
+                    text-align: center;
                 }
+                .title { font-size: ${Math.floor(FS * 0.8)}px; opacity: 0.8; margin-bottom: 8px; }
+                .timer { font-size: ${FS}px; font-weight: bold; }
                 
-                const Description = QueryObject.desc ? (QueryObject.desc + "\n") : "";
+                .days::after { content: "${Days}"; }
+                .hours::after { content: "${Hours}"; }
                 
-                return EscapeText(Description + TimeString);
+                /* Анимация секунд: цикл 60 сек */
+                .seconds::after {
+                    content: "${Seconds}";
+                    animation: countdown-sec 60s step-end infinite;
+                }
+                /* Анимация минут: цикл 3600 сек (1 час) */
+                .minutes::after {
+                    content: "${Minutes}";
+                    animation: countdown-min 3600s step-end infinite;
+                }
+
+                @keyframes countdown-sec {
+                    ${secKeyframes}
+                }
+                @keyframes countdown-min {
+                    ${minKeyframes}
+                }
+            </style>
+            <div xmlns="http://www.w3.org/1999/xhtml" class="container">
+                <div class="title">${EscapeXML(Title)}</div>
+                <div class="timer">
+                    <span class="days"></span>d 
+                    <span class="hours"></span>h 
+                    <span class="minutes"></span>m 
+                    <span class="seconds"></span>s
+                </div>
+            </div>
+        </foreignObject>
+    </svg>`.trim();
             }
             
 			if(Type === "debug"){
