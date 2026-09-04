@@ -196,9 +196,22 @@ module.exports = (Request, Result) => {
 			}
 
             if(Type === "timer"){
-                const TargetDate = QueryObject.target ? new Date(QueryObject.target) : new Date();
+                let targetRaw = QueryObject.target || "";
+                if (targetRaw.includes('T')) {
+                    let parts = targetRaw.split('T');
+                    let time = parts[1].split(':').map(p => p.padStart(2, '0')).join(':');
+                    targetRaw = parts[0] + 'T' + time;
+                }
+
+                const TargetDate = new Date(targetRaw);
                 const Now = new Date();
-                const Diff = TargetDate - Now;
+
+                // Проверка на валидность даты
+                if (isNaN(TargetDate.getTime())) {
+                    return "Ошибка: Неверный формат даты.\nИспользуйте ГГГГ-ММ-ДДTЧЧ:ММ:СС";
+                }
+
+                let Diff = TargetDate - Now;
 
                 // Если время уже вышло
                 if (Diff <= 0 && (QueryObject.onend === "text")) {
@@ -211,82 +224,89 @@ module.exports = (Request, Result) => {
                 const Minutes = Math.floor((TotalSeconds % 3600) / 60);
                 const Seconds = TotalSeconds % 60;
 
-                // Стили из опций
+                // Стили из опций (увеличиваем дефолтный шрифт для таймера)
                 const BG = FixColor(Options.Background);
                 const Color = FixColor(Options.Color);
-                const FS = Options.FontSize || 20;
-                const Width = Options.Width || 400;
-                const Height = Options.Height || 120;
+                const FS = parseInt(QueryObject.t_fs) || 40; // По умолчанию 40 для таймера
+                const Width = parseInt(QueryObject.t_w) || 450;
+                const Height = parseInt(QueryObject.t_h) || 150;
                 const Title = QueryObject.desc || "До события осталось:";
 
-                // Генерируем шаги для секунд (от 59 до 0)
+                // Генерируем шаги для секунд
                 let secKeyframes = "";
                 for (let i = 0; i <= 60; i++) {
                     let val = Seconds - i;
-                    if (val < 0) val += 60;
-                    secKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${val}" }\n`;
+                    while (val < 0) val += 60;
+                    secKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${String(val).padStart(2, '0')}" }\n`;
                 }
 
-                // Генерируем шаги для минут (от 59 до 0)
+                // Генерируем шаги для минут
                 let minKeyframes = "";
                 for (let i = 0; i <= 60; i++) {
                     let val = Minutes - i;
-                    if (val < 0) val += 60;
-                    minKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${val}" }\n`;
+                    while (val < 0) val += 60;
+                    minKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${String(val).padStart(2, '0')}" }\n`;
                 }
 
-                // Собираем SVG с ForeignObject для использования CSS анимаций
                 return `
-    <svg fill="none" width="${Width}" height="${Height}" viewBox="0 0 ${Width} ${Height}" xmlns="http://www.w3.org/2000/svg">
-        <foreignObject width="100%" height="100%">
-            <style>
-                .container {
-                    background: ${BG};
-                    color: ${Color};
-                    font-family: monospace;
-                    height: 100%;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 8px;
-                    text-align: center;
-                }
-                .title { font-size: ${Math.floor(FS * 0.8)}px; opacity: 0.8; margin-bottom: 8px; }
-                .timer { font-size: ${FS}px; font-weight: bold; }
-                
-                .days::after { content: "${Days}"; }
-                .hours::after { content: "${Hours}"; }
-                
-                /* Анимация секунд: цикл 60 сек */
-                .seconds::after {
-                    content: "${Seconds}";
-                    animation: countdown-sec 60s step-end infinite;
-                }
-                /* Анимация минут: цикл 3600 сек (1 час) */
-                .minutes::after {
-                    content: "${Minutes}";
-                    animation: countdown-min 3600s step-end infinite;
-                }
+<svg fill="none" width="${Width}" height="${Height}" viewBox="0 0 ${Width} ${Height}" xmlns="http://www.w3.org/2000/svg">
+    <foreignObject width="100%" height="100%">
+        <style>
+            .container {
+                background: ${BG};
+                color: ${Color};
+                font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                text-align: center;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            .title { 
+                font-size: ${Math.floor(FS * 0.4)}px; 
+                opacity: 0.9; 
+                margin-bottom: 10px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .timer { 
+                font-size: ${FS}px; 
+                font-weight: 800;
+                display: flex;
+                gap: 5px;
+            }
+            .unit { display: inline-block; }
+            
+            .days::after { content: "${Days}"; }
+            .hours::after { content: "${String(Hours).padStart(2, '0')}"; }
+            
+            .seconds::after {
+                content: "${String(Seconds).padStart(2, '0')}";
+                animation: countdown-sec 60s step-end infinite;
+            }
+            .minutes::after {
+                content: "${String(Minutes).padStart(2, '0')}";
+                animation: countdown-min 3600s step-end infinite;
+            }
 
-                @keyframes countdown-sec {
-                    ${secKeyframes}
-                }
-                @keyframes countdown-min {
-                    ${minKeyframes}
-                }
-            </style>
-            <div xmlns="http://www.w3.org/1999/xhtml" class="container">
-                <div class="title">${EscapeXML(Title)}</div>
-                <div class="timer">
-                    <span class="days"></span>d 
-                    <span class="hours"></span>h 
-                    <span class="minutes"></span>m 
-                    <span class="seconds"></span>s
-                </div>
+            @keyframes countdown-sec { ${secKeyframes} }
+            @keyframes countdown-min { ${minKeyframes} }
+        </style>
+        <div xmlns="http://www.w3.org/1999/xhtml" class="container">
+            <div class="title">${EscapeXML(Title)}</div>
+            <div class="timer">
+                <span class="unit"><span class="days"></span>d</span>
+                <span class="unit"><span class="hours"></span>h</span>
+                <span class="unit"><span class="minutes"></span>m</span>
+                <span class="unit"><span class="seconds"></span>s</span>
             </div>
-        </foreignObject>
-    </svg>`.trim();
+        </div>
+    </foreignObject>
+</svg>`.trim();
             }
             
 			if(Type === "debug"){
