@@ -20,7 +20,10 @@ module.exports = (Request, Result) => {
 	try{
 		Result.statusCode = 200;
 
-		const QueryObject = URL.parse(Request.url, true).query || {};
+        const Protocol = Request.headers["x-forwarded-proto"] || "http";
+        const FullURL = new URL(Request.url, `${Protocol}://${Request.headers.host}`);
+		const QueryObject = Object.fromEntries(FullURL.searchParams);
+        
 		const Type = QueryObject.type || "notype";
 
         if(Type !== "debug"){
@@ -447,7 +450,7 @@ module.exports = (Request, Result) => {
                             
                             <!-- URL Запроса -->
                             <text x="140" y="25" fill="#888" font-family="monospace" font-size="10">ENDPOINT URL:</text>
-                            <text x="140" y="40" fill="#aaa" font-family="monospace" font-size="12">${EscapeXML(Log.Url)}</text>
+                            <text x="140" y="40" fill="#aaa" font-family="monospace" font-size="12">${EscapeXML(Log.URL)}</text>
                             
                             <!-- Referer (где вызвано) -->
                             <text x="140" y="65" fill="#888" font-family="monospace" font-size="10">CALLED FROM (REFERER):</text>

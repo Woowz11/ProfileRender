@@ -174,11 +174,11 @@ const GetIconSVG = function(IconID, UniquePrefix){
 const RequestLogs = [];
 
 const AddLog = function(Type, Query, Request){
-    const FullURL = Request.url;
+    const FullURL = Request.url || "/";
     const Referer = Request.headers["referer"] || Request.headers["referrer"] || "Direct / No Referer";
     const TimeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
     
-    const ExistingEntry = RequestLogs.find(Log => Log.Url == FullURL && Log.Referer == Referer);
+    const ExistingEntry = RequestLogs.find(Log => Log.URL == FullURL && Log.Referer == Referer);
     
     if(ExistingEntry){
         ExistingEntry.Time = TimeNow;
@@ -187,7 +187,7 @@ const AddLog = function(Type, Query, Request){
         const NewEntry = {
             Time: TimeNow,
             Type: Type,
-            Url: FullURL,
+            URL: FullURL,
             Referer: Referer,
             Count: 1
         };
