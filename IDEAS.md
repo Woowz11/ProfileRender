@@ -32,6 +32,9 @@
 	* toribash
 	* unturned
 	* world of guns
+	* datadog
+	* redis, upstash и т.д
+	* firebase
 	* donation alerts
 	* paypal
 	* redbubble
