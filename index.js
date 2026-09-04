@@ -24,8 +24,12 @@ module.exports = (Request, Result) => {
 		const Type = QueryObject.type || "notype";
 
 		Result.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
-		Result.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        Result.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
+        Result.setHeader("Pragma", "no-cache");
+        Result.setHeader("Expires", "0");
 
+        function EnableRefresh(){ Result.setHeader("Refresh", "1"); }
+        
 		let Options = { ...DefaultOptions };
 
 		Options.Background = QueryObject.t_bg  || Options.Background;
@@ -210,6 +214,8 @@ module.exports = (Request, Result) => {
                 if(IsExpired && OnEnd === "text"){
                     return EscapeText(ExpiredText);
                 }
+
+                EnableRefresh();
                 
                 if(Mode === "elapsed"){
                     Diff = Now - TargetDate;
