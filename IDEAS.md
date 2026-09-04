@@ -17,7 +17,6 @@
 	* paint the town red
 	* baroutrama
 	* isaac
-	* scrap mechanic
 	* brick rigs
 	* space station 13/14
 	* people playground
@@ -33,10 +32,7 @@
 	* toribash
 	* unturned
 	* world of guns
-	* raylib
-	* patreon
-	* ko-fi
-	* itch.io
+	* donation alerts
 	* paypal
 	* redbubble
 	* сбербанк
@@ -48,7 +44,6 @@
 	* Sol2
 	* stb_image
 	* assimp
-	* bepu
 
 * иконки фигур
 	* квадрат, треугольник, круг, звезда, кольцо, бублик, полукруг, полуквадрат, паук, замочная скважина, men, woman, шестеугольник, остроконечная звезда, крестик, галочка, округленный квадрат, брилиант

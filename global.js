@@ -171,6 +171,40 @@ const GetIconSVG = function(IconID, UniquePrefix){
 
 // ----------------------------------------------------------------------
 
+const RequestLogs = [];
+
+const AddLog = function(Type, Query, Request){
+    const FullURL = Request.url;
+    const Referer = Request.headers["referer"] || Request.headers["referrer"] || "Direct / No Referer";
+    const TimeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    
+    const ExistingEntry = RequestLogs.find(Log => Log.Url == FullURL && Log.Referer == Referer);
+    
+    if(ExistingEntry){
+        ExistingEntry.Time = TimeNow;
+        ExistingEntry.Count++;
+    }else{
+        const NewEntry = {
+            Time: TimeNow,
+            Type: Type,
+            Url: FullURL,
+            Referer: Referer,
+            Count: 1
+        };
+        
+        if(Type === "js" && Query.code){
+            try{
+                const Code = Buffer.from(Query.code.replace(/ /g, "+", "base64").toString("utf8"));
+                NewEntry.JSPreview = Code.substring(0, 150);
+            }catch(e){}
+        }
+    }
+    
+    RequestLogs.unshift(LogEntry);
+}
+
+// ----------------------------------------------------------------------
+
 const IconsPath = PATH.join(process.cwd(), "resources", "icons");
 const IconsInfoPath = PATH.join(IconsPath, "icons.json");
 
@@ -187,5 +221,7 @@ module.exports = {
     ParseLocalParams,
     AutoCast,
     FixColor,
-    EscapeText
+    EscapeText,
+    RequestLogs,
+    AddLog
 };

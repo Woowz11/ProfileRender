@@ -1,7 +1,7 @@
 const URL = require("url");
 const VM = require("vm");
 
-const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText } = require("./global.js");
+const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog } = require("./global.js");
 
 // ----------------------------------------------------------------------
 
@@ -23,6 +23,10 @@ module.exports = (Request, Result) => {
 		const QueryObject = URL.parse(Request.url, true).query || {};
 		const Type = QueryObject.type || "notype";
 
+        if(Type !== "debug"){
+            AddLog(Type, QueryObject, Request);
+        }
+        
 		Result.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
         Result.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
         Result.setHeader("Pragma", "no-cache");
@@ -421,7 +425,54 @@ module.exports = (Request, Result) => {
 							${SVGContent}
 						</svg>`;
 					}
-				}
+				}else if(Debug === "history") {
+                    const {RequestLogs} = require("./global.js"); // Импортируем массив
+
+                    const CanvasWidth = 1000;
+                    const RowH = 100;
+                    let Y = 70;
+                    let SVGContent = "";
+
+                    RequestLogs.forEach((Log, i) => {
+                        const isEven = i % 2 === 0;
+                        const rowBg = isEven ? "rgba(255,255,255,0.05)" : "transparent";
+
+                        SVGContent += `
+                        <g transform="translate(0, ${Y})">
+                            <rect width="${CanvasWidth}" height="${RowH}" fill="${rowBg}" />
+                            
+                            <!-- Время и счетчик -->
+                            <text x="20" y="30" fill="#4fc3f7" font-family="monospace" font-size="12" font-weight="bold">[${Log.Count}x] Last: ${Log.Time}</text>
+                            
+                            <!-- Тип -->
+                            <text x="20" y="55" fill="#fff" font-family="monospace" font-size="18" font-weight="bold">${Log.Type.toUpperCase()}</text>
+                            
+                            <!-- URL Запроса -->
+                            <text x="140" y="25" fill="#888" font-family="monospace" font-size="10">ENDPOINT URL:</text>
+                            <text x="140" y="40" fill="#aaa" font-family="monospace" font-size="12">${EscapeXML(Log.Url)}</text>
+                            
+                            <!-- Referer (где вызвано) -->
+                            <text x="140" y="65" fill="#888" font-family="monospace" font-size="10">CALLED FROM (REFERER):</text>
+                            <text x="140" y="80" fill="#4caf50" font-family="monospace" font-size="12">${EscapeXML(Log.Referer)}</text>
+                            
+                            ${Log.JSPreview ? `
+                                <text x="140" y="95" fill="#ffa726" font-family="monospace" font-size="10" font-style="italic">JS: ${EscapeXML(Log.JSPreview)}...</text>
+                            ` : ""}
+                            
+                            <line x1="0" y1="${RowH}" x2="${CanvasWidth}" y2="${RowH}" stroke="rgba(255,255,255,0.1)" />
+                        </g>`;
+                        Y += RowH;
+                    });
+
+                    return `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${Y + 50}">
+                        <rect width="100%" height="100%" fill="#111" />
+                        <text x="20" y="40" fill="#fff" font-family="monospace" font-size="24" font-weight="bold">Request History Monitor</text>
+                        <text x="800" y="40" fill="#4fc3f7" font-family="monospace" font-size="12">Unique calls in memory: ${RequestLogs.length}</text>
+                        <line x1="20" y1="55" x2="${CanvasWidth - 20}" y2="55" stroke="#4fc3f7" stroke-width="2" />
+                        ${SVGContent}
+                    </svg>`;
+                }
 
 				return "Неизвестный тип \"debug\"!";
 			}
