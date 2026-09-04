@@ -26,7 +26,8 @@ module.exports = async (Request, Result) => {
 		const Type = QueryObject.type || "notype";
 
         if(Type !== "debug"){
-            await AddLog(Type, QueryObject, Request);
+            // хуйня не рабочая, на каком сайте картинка запущена не узнать
+            //await AddLog(Type, QueryObject, Request);
         }
         
 		Result.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
