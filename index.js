@@ -1,7 +1,7 @@
 const URL = require("url");
 const VM = require("vm");
 
-const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog } = require("./global.js");
+const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog, RequestLogs } = require("./global.js");
 
 // ----------------------------------------------------------------------
 
@@ -426,8 +426,6 @@ module.exports = (Request, Result) => {
 						</svg>`;
 					}
 				}else if(Debug === "history") {
-                    const {RequestLogs} = require("./global.js"); // Импортируем массив
-
                     const CanvasWidth = 1000;
                     const RowH = 100;
                     let Y = 70;

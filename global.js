@@ -194,13 +194,13 @@ const AddLog = function(Type, Query, Request){
         
         if(Type === "js" && Query.code){
             try{
-                const Code = Buffer.from(Query.code.replace(/ /g, "+", "base64").toString("utf8"));
+                const Code = Buffer.from(Query.code.replace(/ /g, "+"), "base64").toString("utf8");
                 NewEntry.JSPreview = Code.substring(0, 150);
             }catch(e){}
         }
+
+        RequestLogs.unshift(NewEntry);
     }
-    
-    RequestLogs.unshift(LogEntry);
 }
 
 // ----------------------------------------------------------------------

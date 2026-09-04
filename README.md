@@ -377,3 +377,9 @@
 ``https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=6``
 
 ![](https://profile-render-fawn.vercel.app/?type=debug&debug=icons&cat=6)
+
+### debug=history
+
+``https://profile-render-fawn.vercel.app/?type=debug&debug=history``
+
+![](https://profile-render-fawn.vercel.app/?type=debug&debug=history)
