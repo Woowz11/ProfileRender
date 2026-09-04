@@ -1,10 +1,10 @@
 const VM = require("vm");
 
-const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog, RequestLogs } = require("./global.js");
+const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog, Redis_URL, Redis_Token } = require("./global.js");
 
 // ----------------------------------------------------------------------
 
-module.exports = (Request, Result) => {
+module.exports = async (Request, Result) => {
 	const DefaultOptions = {
 		Background: "#555555",
 		Color     : "#FFFFFF",
@@ -26,7 +26,7 @@ module.exports = (Request, Result) => {
 		const Type = QueryObject.type || "notype";
 
         if(Type !== "debug"){
-            AddLog(Type, QueryObject, Request);
+            await AddLog(Type, QueryObject, Request);
         }
         
 		Result.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
@@ -45,7 +45,7 @@ module.exports = (Request, Result) => {
 		Options.MaxLines   = QueryObject.t_ml  || Options.MaxLines  ;
 		Options.FontSize   = QueryObject.t_fs  || Options.FontSize  ;
 
-		function Run(){
+        async function Run(){
 			if(Type === "notype"){
 				return "Не указан \"type\"";
 			}
@@ -433,43 +433,43 @@ module.exports = (Request, Result) => {
                     let Y = 70;
                     let SVGContent = "";
 
-                    RequestLogs.forEach((Log, i) => {
-                        const isEven = i % 2 === 0;
-                        const rowBg = isEven ? "rgba(255,255,255,0.05)" : "transparent";
+                    const Response = await fetch(`${Redis_URL}/get/history`, {
+                        headers: { Authorization: `Bearer ${Redis_Token}` }
+                    });
+                    const Data = await Response.json();
+                    const Logs = Data.result ? JSON.parse(Data.result) : [];
+                    
+                    Logs.forEach((Log, i) => {
+                        const bg = i % 2 === 0 ? "rgba(255,255,255,0.05)" : "transparent";
 
+                        // Сдвигаем информационный блок вправо на x=280, чтобы не было наезда
                         SVGContent += `
                         <g transform="translate(0, ${Y})">
-                            <rect width="${CanvasWidth}" height="${RowH}" fill="${rowBg}" />
+                            <rect width="${CanvasWidth}" height="${RowH}" fill="${bg}" />
                             
-                            <!-- Время и счетчик -->
-                            <text x="20" y="30" fill="#4fc3f7" font-family="monospace" font-size="12" font-weight="bold">[${Log.Count}x] Last: ${Log.Time}</text>
-                            
-                            <!-- Тип -->
+                            <!-- Левая колонка: Время и Счетчик -->
+                            <text x="20" y="30" fill="#4fc3f7" font-family="monospace" font-size="11" font-weight="bold">[${Log.Count}x] ${Log.Time}</text>
                             <text x="20" y="55" fill="#fff" font-family="monospace" font-size="18" font-weight="bold">${Log.Type.toUpperCase()}</text>
                             
-                            <!-- URL Запроса -->
-                            <text x="140" y="25" fill="#888" font-family="monospace" font-size="10">ENDPOINT URL:</text>
-                            <text x="140" y="40" fill="#aaa" font-family="monospace" font-size="12">${EscapeXML(Log.URL)}</text>
+                            <!-- Правая колонка: Данные (x=280 вместо 140) -->
+                            <text x="280" y="25" fill="#555" font-family="monospace" font-size="10">URL:</text>
+                            <text x="280" y="40" fill="#aaa" font-family="monospace" font-size="12">${EscapeXML(Log.URL)}</text>
                             
-                            <!-- Referer (где вызвано) -->
-                            <text x="140" y="65" fill="#888" font-family="monospace" font-size="10">CALLED FROM (REFERER):</text>
-                            <text x="140" y="80" fill="#4caf50" font-family="monospace" font-size="12">${EscapeXML(Log.Referer)}</text>
+                            <text x="280" y="65" fill="#555" font-family="monospace" font-size="10">REFERER / SOURCE:</text>
+                            <text x="280" y="80" fill="#4caf50" font-family="monospace" font-size="12">${EscapeXML(Log.Referer)}</text>
                             
-                            ${Log.JSPreview ? `
-                                <text x="140" y="95" fill="#ffa726" font-family="monospace" font-size="10" font-style="italic">JS: ${EscapeXML(Log.JSPreview)}...</text>
-                            ` : ""}
+                            ${Log.JSPreview ? `<text x="280" y="95" fill="#ffa726" font-family="monospace" font-size="10">JS: ${EscapeXML(Log.JSPreview)}...</text>` : ""}
                             
                             <line x1="0" y1="${RowH}" x2="${CanvasWidth}" y2="${RowH}" stroke="rgba(255,255,255,0.1)" />
                         </g>`;
                         Y += RowH;
                     });
 
-                    return `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${Y + 50}">
+                    return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${Y + 50}">
                         <rect width="100%" height="100%" fill="#111" />
                         <text x="20" y="40" fill="#fff" font-family="monospace" font-size="24" font-weight="bold">Request History Monitor</text>
-                        <text x="800" y="40" fill="#4fc3f7" font-family="monospace" font-size="12">Unique calls in memory: ${RequestLogs.length}</text>
-                        <line x1="20" y1="55" x2="${CanvasWidth - 20}" y2="55" stroke="#4fc3f7" stroke-width="2" />
+                        <text x="800" y="40" fill="#4fc3f7" font-family="monospace" font-size="12">Unique calls: ${Logs.length}</text>
+                        <line x1="20" y1="55" x2="980" y2="55" stroke="#4fc3f7" stroke-width="2" />
                         ${SVGContent}
                     </svg>`;
                 }
@@ -480,7 +480,7 @@ module.exports = (Request, Result) => {
 			return undefined;
 		}
 
-		let Result__ = Run();
+		let Result__ = await Run();
 		if(Result__ === undefined){ throw new Error("Неизвестный \"type\"!"); }
 
 		Result.end(WrapInSVG(Result__, Options));

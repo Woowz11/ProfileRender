@@ -1,6 +1,9 @@
 const FS = require("fs");
 const PATH = require("path");
 
+const Redis_URL = process.env.Redis_URL;
+const Redis_Token = process.env.Redis_Token;
+
 const EscapeXML = function(S){
     if(typeof S !== "string"){ S = String(S); }
     return S.replace(/[<>&"']/g, (C) => ({
@@ -173,33 +176,49 @@ const GetIconSVG = function(IconID, UniquePrefix){
 
 const RequestLogs = [];
 
-const AddLog = function(Type, Query, Request){
+const AddLog = async function(Type, Query, Request){
     const FullURL = Request.url || "/";
-    const Referer = Request.headers["referer"] || Request.headers["referrer"] || "Direct / No Referer";
+    const Referer = Request.headers["referer"] || Request.headers["referrer"] || Request.headers["x-orig-referer"] || Request.headers["origin"] || "Direct / No Referer";
     const TimeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
     
-    const ExistingEntry = RequestLogs.find(Log => Log.URL == FullURL && Log.Referer == Referer);
-    
-    if(ExistingEntry){
-        ExistingEntry.Time = TimeNow;
-        ExistingEntry.Count++;
-    }else{
-        const NewEntry = {
-            Time: TimeNow,
-            Type: Type,
-            URL: FullURL,
-            Referer: Referer,
-            Count: 1
-        };
-        
-        if(Type === "js" && Query.code){
-            try{
-                const Code = Buffer.from(Query.code.replace(/ /g, "+"), "base64").toString("utf8");
-                NewEntry.JSPreview = Code.substring(0, 150);
-            }catch(e){}
-        }
+    try{
+        const Response = await fetch(`${Redis_URL}/get/history`, {
+            headers: { Authorization: `Bearer ${Redis_Token}` }
+        });
+        const Data = await Response.json();
+        let Logs = Data.result ? JSON.parse(Data.result) : [];
 
-        RequestLogs.unshift(NewEntry);
+        const ExistingEntry = Logs.find(Log => Log.URL == FullURL && Log.Referer == Referer);
+
+        if(ExistingEntry){
+            ExistingEntry.Time = TimeNow;
+            ExistingEntry.Count++;
+        }else{
+            const NewEntry = {
+                Time: TimeNow,
+                Type: Type,
+                URL: FullURL,
+                Referer: Referer,
+                Count: 1
+            };
+
+            if(Type === "js" && Query.code){
+                try{
+                    const Code = Buffer.from(Query.code.replace(/ /g, "+"), "base64").toString("utf8");
+                    NewEntry.JSPreview = Code.substring(0, 150);
+                }catch(e){}
+            }
+
+            Logs.unshift(NewEntry);
+        }
+        
+        await fetch(`${Redis_URL}/set/history`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${Redis_Token}` },
+            body: JSON.stringify(Logs)
+        })
+    }catch(e){
+        console.error("Redis Error:", e)
     }
 }
 
@@ -223,5 +242,7 @@ module.exports = {
     FixColor,
     EscapeText,
     RequestLogs,
-    AddLog
+    AddLog,
+    Redis_URL,
+    Redis_Token
 };
