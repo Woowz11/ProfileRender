@@ -262,7 +262,9 @@
 		"insta"           : "instagram",
 		"likee"           : "likee",
 		"reddit"          : "reddit",
-		"linux"           : "linux"
+		"linux"           : "linux",
+		"sqaure"          : "square",
+		"circle"          : "circle"
 	},
 	"Backgrounds": {
 		"reddit": "ff4500ff",
@@ -359,7 +361,7 @@
 		"Библиотеки"               : ["opengl", "vulkan", "bullet", "directx", "glfw", "box2d", "hibernate"],
 		"Компании"                 : ["microsoft", "google", "nvidia", "apple", "redhat"],
 		"ИИ"                       : ["chatgpt", "deepseek"],
-		"Фигуры"                   : [],
+		"Фигуры"                   : ["square", "circle"],
 		"Приколы"                  : ["render", "troll", "creeper", "golu"],
 		"Остальное"                : ["error", "blank"]
 	}

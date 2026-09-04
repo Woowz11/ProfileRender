@@ -193,6 +193,62 @@ module.exports = (Request, Result) => {
 				</svg>`;
 			}
 
+            if(Type === "timer"){
+                const TargetDate = QueryObject.target ? new Date(QueryObject.target) : new Date();
+                const Now = new Date();
+                
+                const Mode = QueryObject.mode || "remain";
+                
+                let Format = QueryObject.fmt || "%D:%H:%M:%S";
+                
+                const OnEnd = QueryObject.onend || "minus";
+                const ExpiredText = QueryObject.ext_text || "Время истекло";
+                
+                let Diff = TargetDate - Now;
+                const IsExpired = Diff <= 0;
+                
+                if(IsExpired && OnEnd === "text"){
+                    return EscapeText(ExpiredText);
+                }
+                
+                if(Mode === "elapsed"){
+                    Diff = Now - TargetDate;
+                }
+                
+                const AbsDiff = Math.abs(Diff);
+                
+                const TSeconds = Math.floor(AbsDiff / 1000);
+                const TMinutes = Math.floor(TSeconds / 60);
+                const THours = Math.floor(TMinutes / 60);
+                const TDays = Math.floor(THours / 24);
+                
+                const Seconds = TSeconds % 60;
+                const Minutes = TMinutes % 60;
+                const Hours = THours % 24;
+                
+                let TimeString = Format;
+                
+                if(Mode === "total_s"){
+                    TimeString = String(TSeconds);
+                }else if(Mode === "total_m"){
+                    TimeString = String(TMinutes);
+                }else{
+                    TimeString = TimeString
+                        .replace(/%D/g, TDays)
+                        .replace(/%H/g, String(Hours).padStart(2, "0"))
+                        .replace(/%M/g, String(Minutes).padStart(2, "0"))
+                        .replace(/%S/g, String(Seconds).padStart(2, "0"))
+                }
+                
+                if(IsExpired && OnEnd === "minus" && Mode === "remain"){
+                    TimeString = "-" + TimeString;
+                }
+                
+                const Description = QueryObject.desc ? (QueryObject.desc + "\n") : "";
+                
+                return EscapeText(Description + TimeString);
+            }
+            
 			if(Type === "debug"){
 				if(!QueryObject.debug || QueryObject.debug === ""){ return "Не указан \"debug\""; }
 				const Debug = QueryObject.debug;
