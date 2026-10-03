@@ -439,6 +439,7 @@ module.exports = async (Request, Result) => {
                         </text>
                     </svg>`;
                 }
+			}
 
 			return undefined;
 		}
