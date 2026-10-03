@@ -191,7 +191,6 @@ module.exports = {
     AutoCast,
     FixColor,
     EscapeText,
-    RequestLogs,
     Redis_URL,
     Redis_Token
 };
