@@ -174,56 +174,6 @@ const GetIconSVG = function(IconID, UniquePrefix){
 
 // ----------------------------------------------------------------------
 
-const RequestLogs = [];
-
-const AddLog = async function(Type, Query, Request){
-    const FullURL = Request.url || "/";
-    const Referer = Request.headers["referer"] || Request.headers["referrer"] || Request.headers["x-orig-referer"] || Request.headers["origin"] || "Direct / No Referer";
-    const TimeNow = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
-    
-    try{
-        const Response = await fetch(`${Redis_URL}/get/history`, {
-            headers: { Authorization: `Bearer ${Redis_Token}` }
-        });
-        const Data = await Response.json();
-        let Logs = Data.result ? JSON.parse(Data.result) : [];
-
-        const ExistingEntry = Logs.find(Log => Log.URL == FullURL && Log.Referer == Referer);
-
-        if(ExistingEntry){
-            ExistingEntry.Time = TimeNow;
-            ExistingEntry.Count++;
-        }else{
-            const NewEntry = {
-                Time: TimeNow,
-                Type: Type,
-                URL: FullURL,
-                Referer: Referer,
-                Count: 1
-            };
-
-            if(Type === "js" && Query.code){
-                try{
-                    const Code = Buffer.from(Query.code.replace(/ /g, "+"), "base64").toString("utf8");
-                    NewEntry.JSPreview = Code.substring(0, 150);
-                }catch(e){}
-            }
-
-            Logs.unshift(NewEntry);
-        }
-        
-        await fetch(`${Redis_URL}/set/history`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${Redis_Token}` },
-            body: JSON.stringify(Logs)
-        })
-    }catch(e){
-        console.error("Redis Error:", e)
-    }
-}
-
-// ----------------------------------------------------------------------
-
 const IconsPath = PATH.join(process.cwd(), "resources", "icons");
 const IconsInfoPath = PATH.join(IconsPath, "icons.json");
 
@@ -242,7 +192,6 @@ module.exports = {
     FixColor,
     EscapeText,
     RequestLogs,
-    AddLog,
     Redis_URL,
     Redis_Token
 };

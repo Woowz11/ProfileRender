@@ -1,6 +1,6 @@
 const VM = require("vm");
 
-const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, AddLog, Redis_URL, Redis_Token } = require("./global.js");
+const { EscapeXML, WrapInSVG, GetIconSVG, IconsInfo, SplitParams, ParseLocalParams, FixColor, EscapeText, Redis_URL, Redis_Token } = require("./global.js");
 
 // ----------------------------------------------------------------------
 
@@ -24,11 +24,6 @@ module.exports = async (Request, Result) => {
 		const QueryObject = Object.fromEntries(FullURL.searchParams);
         
 		const Type = QueryObject.type || "notype";
-
-        if(Type !== "debug"){
-            // хуйня не рабочая, на каком сайте картинка запущена не узнать
-            //await AddLog(Type, QueryObject, Request);
-        }
         
 		Result.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
         Result.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
@@ -200,117 +195,7 @@ module.exports = async (Request, Result) => {
 					<defs>${Defs}</defs>
 					${SVGContent}
 				</svg>`;
-			}else if(Type === "timer"){
-                // 1. Обработка даты и часового пояса
-                let targetRaw = QueryObject.target || "";
-
-                // Исправляем проблему: в URL "+" часто превращается в пробел
-                // Это важно для таймзон типа +03:00
-                targetRaw = targetRaw.replace(/\s/g, "+");
-
-                // Если даты нет, или она кривая
-                if (!targetRaw) return "Укажите target=ГГГГ-ММ-ДДTЧЧ:ММ:SS";
-
-                const TargetDate = new Date(targetRaw);
-                const Now = new Date();
-
-                if (isNaN(TargetDate.getTime())) {
-                    return "Ошибка: Неверный формат даты.\nИспользуйте: 2026-09-06T00:10:00%2B03:00";
-                }
-
-                const Diff = TargetDate.getTime() - Now.getTime();
-
-                // Если время уже вышло
-                if (Diff <= 0) {
-                    if (QueryObject.onend === "text") {
-                        return EscapeText(QueryObject.ext_text || "Время истекло");
-                    }
-                    // Если не text, просто сбросим Diff в 0, чтобы не было NaN
-                }
-
-                const TotalSeconds = Math.max(0, Math.floor(Diff / 1000));
-
-                const Days = Math.floor(TotalSeconds / 86400);
-                const Hours = Math.floor((TotalSeconds % 86400) / 3600);
-                const Minutes = Math.floor((TotalSeconds % 3600) / 60);
-                const Seconds = TotalSeconds % 60;
-
-                // Стили
-                const BG = FixColor(Options.Background);
-                const Color = FixColor(Options.Color);
-                const FS = parseInt(QueryObject.t_fs) || 40;
-                const Width = parseInt(QueryObject.t_w) || 450;
-                const Height = parseInt(QueryObject.t_h) || 150;
-                const Title = QueryObject.desc || "До события осталось:";
-
-                // Генерация анимации
-                let secKeyframes = "";
-                for (let i = 0; i <= 60; i++) {
-                    let val = Seconds - i;
-                    while (val < 0) val += 60;
-                    secKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${String(val).padStart(2, '0')}" }\n`;
-                }
-
-                let minKeyframes = "";
-                for (let i = 0; i <= 60; i++) {
-                    let val = Minutes - i;
-                    while (val < 0) val += 60;
-                    minKeyframes += `${(i * (100 / 60)).toFixed(2)}% { content: "${String(val).padStart(2, '0')}" }\n`;
-                }
-
-                return `
-<svg fill="none" width="${Width}" height="${Height}" viewBox="0 0 ${Width} ${Height}" xmlns="http://www.w3.org/2000/svg">
-    <foreignObject width="100%" height="100%">
-        <style>
-            .container {
-                background: ${BG};
-                color: ${Color};
-                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                border-radius: 12px;
-                text-align: center;
-                border: 1px solid rgba(255,255,255,0.1);
-            }
-            .title { 
-                font-size: ${Math.floor(FS * 0.4)}px; 
-                opacity: 0.7; 
-                margin-bottom: 8px;
-                font-weight: 500;
-            }
-            .timer { 
-                font-size: ${FS}px; 
-                font-weight: 800;
-                font-family: ui-monospace, 'Cascadia Code', monospace;
-            }
-            .days::after { content: "${Days}"; }
-            .hours::after { content: "${String(Hours).padStart(2, '0')}"; }
-            .minutes::after {
-                content: "${String(Minutes).padStart(2, '0')}";
-                animation: countdown-min 3600s step-end infinite;
-            }
-            .seconds::after {
-                content: "${String(Seconds).padStart(2, '0')}";
-                animation: countdown-sec 60s step-end infinite;
-            }
-            @keyframes countdown-sec { ${secKeyframes} }
-            @keyframes countdown-min { ${minKeyframes} }
-        </style>
-        <div xmlns="http://www.w3.org/1999/xhtml" class="container">
-            <div class="title">${EscapeXML(Title)}</div>
-            <div class="timer">
-                <span class="days"></span>d 
-                <span class="hours"></span>h 
-                <span class="minutes"></span>m 
-                <span class="seconds"></span>s
-            </div>
-        </div>
-    </foreignObject>
-</svg>`.trim();
-            }
+			}
             
 			if(Type === "debug"){
 				if(!QueryObject.debug || QueryObject.debug === ""){ return "Не указан \"debug\""; }
@@ -455,55 +340,7 @@ module.exports = async (Request, Result) => {
                             СОВЕТ: Если тут нет ссылки на сайт, значит сайт (например GitHub) намеренно её скрывает.
                         </text>
                     </svg>`;
-                }else if(Debug === "history") {
-                    const CanvasWidth = 1000;
-                    const RowH = 100;
-                    let Y = 70;
-                    let SVGContent = "";
-
-                    const Response = await fetch(`${Redis_URL}/get/history`, {
-                        headers: { Authorization: `Bearer ${Redis_Token}` }
-                    });
-                    const Data = await Response.json();
-                    const Logs = Data.result ? JSON.parse(Data.result) : [];
-                    
-                    Logs.forEach((Log, i) => {
-                        const bg = i % 2 === 0 ? "rgba(255,255,255,0.05)" : "transparent";
-
-                        // Сдвигаем информационный блок вправо на x=280, чтобы не было наезда
-                        SVGContent += `
-                        <g transform="translate(0, ${Y})">
-                            <rect width="${CanvasWidth}" height="${RowH}" fill="${bg}" />
-                            
-                            <!-- Левая колонка: Время и Счетчик -->
-                            <text x="20" y="30" fill="#4fc3f7" font-family="monospace" font-size="11" font-weight="bold">[${Log.Count}x] ${Log.Time}</text>
-                            <text x="20" y="55" fill="#fff" font-family="monospace" font-size="18" font-weight="bold">${Log.Type.toUpperCase()}</text>
-                            
-                            <!-- Правая колонка: Данные (x=280 вместо 140) -->
-                            <text x="280" y="25" fill="#555" font-family="monospace" font-size="10">URL:</text>
-                            <text x="280" y="40" fill="#aaa" font-family="monospace" font-size="12">${EscapeXML(Log.URL)}</text>
-                            
-                            <text x="280" y="65" fill="#555" font-family="monospace" font-size="10">REFERER / SOURCE:</text>
-                            <text x="280" y="80" fill="#4caf50" font-family="monospace" font-size="12">${EscapeXML(Log.Referer)}</text>
-                            
-                            ${Log.JSPreview ? `<text x="280" y="95" fill="#ffa726" font-family="monospace" font-size="10">JS: ${EscapeXML(Log.JSPreview)}...</text>` : ""}
-                            
-                            <line x1="0" y1="${RowH}" x2="${CanvasWidth}" y2="${RowH}" stroke="rgba(255,255,255,0.1)" />
-                        </g>`;
-                        Y += RowH;
-                    });
-
-                    return `<svg xmlns="http://www.w3.org/2000/svg" width="${CanvasWidth}" height="${Y + 50}">
-                        <rect width="100%" height="100%" fill="#111" />
-                        <text x="20" y="40" fill="#fff" font-family="monospace" font-size="24" font-weight="bold">Request History Monitor</text>
-                        <text x="800" y="40" fill="#4fc3f7" font-family="monospace" font-size="12">Unique calls: ${Logs.length}</text>
-                        <line x1="20" y1="55" x2="980" y2="55" stroke="#4fc3f7" stroke-width="2" />
-                        ${SVGContent}
-                    </svg>`;
                 }
-
-				return "Неизвестный тип \"debug\"!";
-			}
 
 			return undefined;
 		}
