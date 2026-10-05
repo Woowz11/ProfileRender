@@ -213,14 +213,13 @@ module.exports = async (Request, Result) => {
 
 				const BG = FixColor(Options.Background);
 				const Color = FixColor(Options.Color);
-				const ThemeColor = FixColor(QueryObject.t_theme || Options.Color); // Новый параметр темы
+				const ThemeColor = FixColor(QueryObject.t_theme || Options.Color);
 				const Title = QueryObject.desc || "ДО СОБЫТИЯ ОСТАЛОСЬ";
 
-				// 1. Динамический расчет ширины
 				const daysStr = String(d);
-				const dWidth = Math.max(60, daysStr.length * 28); // Ширина блока дней
-				const totalWidth = 380 + dWidth; // Базовая ширина + динамика дней + место под часы
-				const clockX = totalWidth - 80;   // Позиция центра часов
+				const dWidth = Math.max(60, daysStr.length * 28);
+				const totalWidth = 380 + dWidth;
+				const clockX = totalWidth - 80;
 
 				let secKeyframes = "";
 				for (let i = 0; i <= 60; i++) {
@@ -234,8 +233,8 @@ module.exports = async (Request, Result) => {
 				const mDeg = serverTime.getMinutes() * 6 + sDeg / 60;
 				const hDeg = (serverTime.getHours() % 12) * 30 + mDeg / 12;
 
-				// 2. Геометрия фона (Path): лево - прямо, право - закруглено (16px)
-				const bgPath = `M0,0 H${totalWidth - 16} Q${totalWidth},0 ${totalWidth},16 V144 Q${totalWidth},160 ${totalWidth - 16},160 H0 V0 Z`;
+				const R = 16;
+				const bgPath = `M${R},0 H${totalWidth - R} Q${totalWidth},0 ${totalWidth},${R} V${160 - R} Q${totalWidth},160 ${totalWidth - R},160 H${R} Q0,160 0,${160 - R} V${R} Q0,0 ${R},0 Z`;
 
 				return `
 			<svg width="${totalWidth}" height="160" viewBox="0 0 ${totalWidth} 160" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -247,12 +246,6 @@ module.exports = async (Request, Result) => {
 					.title { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 400; letter-spacing: 2px; fill: ${Color}; opacity: 0.6; }
 					.digits { font-family: 'JetBrains Mono', monospace; font-size: 42px; font-weight: 700; fill: ${Color}; }
 					.labels { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; fill: ${ThemeColor}; opacity: 0.7; text-transform: uppercase; }
-					
-					.sec-anim::after { 
-						content: "${String(s).padStart(2, '0')}"; 
-						animation: step-sec 60s step-end infinite; 
-					}
-					@keyframes step-sec { ${secKeyframes} }
 					
 					.hand { transform-origin: ${clockX}px 80px; stroke: ${ThemeColor}; stroke-linecap: round; }
 					.hand-sec { stroke: #FF4B4B; stroke-width: 1.5; animation: rotate-s 60s linear infinite; }
@@ -270,23 +263,15 @@ module.exports = async (Request, Result) => {
 				<text x="30" y="45" class="title">${EscapeXML(Title)}</text>
 				
 				<g class="digits">
-					<!-- Блок дней -->
 					<text x="30" y="100">${d}<tspan class="labels" dy="-20">d</tspan></text>
 					
-					<!-- Блок часов (смещение зависит от ширины дней) -->
 					<text x="${30 + dWidth + 10}" y="100">${String(h).padStart(2, '0')}<tspan class="labels" dy="-20">h</tspan></text>
 					
-					<!-- Блок минут -->
 					<text x="${30 + dWidth + 85}" y="100">${String(m).padStart(2, '0')}<tspan class="labels" dy="-20">m</tspan></text>
 					
-					<!-- Блок секунд через foreignObject -->
-					<foreignObject x="${30 + dWidth + 155}" y="58" width="100" height="60">
-						<div xmlns="http://www.w3.org/1999/xhtml" class="digits sec-anim" style="color:${Color}; font-family:'JetBrains Mono', monospace; font-size:42px; font-weight:700;"></div>
-						<div xmlns="http://www.w3.org/1999/xhtml" class="labels" style="color:${ThemeColor}; font-family:'Inter', sans-serif; font-size:10px; font-weight:800; margin-top:-10px; margin-left:55px">s</div>
-					</foreignObject>
+					<text x="${30 + dWidth + 155}" y="100">${String(s).padStart(2, '0')}<tspan class="labels" dy="-20">s</tspan></text>
 				</g>
 
-				<!-- Циферблат -->
 				<g transform="translate(${clockX}, 80)">
 					<circle r="55" stroke="${ThemeColor}" stroke-width="2" opacity="0.15" fill="white" fill-opacity="0.05" />
 					<circle r="2" fill="${ThemeColor}" />
@@ -297,7 +282,6 @@ module.exports = async (Request, Result) => {
 				<line class="hand hand-min" x1="${clockX}" y1="80" x2="${clockX}" y2="45" />
 				<line class="hand hand-sec" x1="${clockX}" y1="80" x2="${clockX}" y2="40" />
 				
-				<!-- Стеклянный блик справа -->
 				<path d="${bgPath}" fill="url(#grad)" opacity="0.1" pointer-events="none" />
 				<defs>
 					<linearGradient id="grad" x1="0" y1="0" x2="${totalWidth}" y2="160" gradientUnits="userSpaceOnUse">
