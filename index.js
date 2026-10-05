@@ -211,15 +211,6 @@ module.exports = async (Request, Result) => {
 				const m = Math.floor((TotalSeconds % 3600) / 60);
 				const s = TotalSeconds % 60;
 
-				const totalMinutes = m + (h + d * 24) * 60;
-				const secCycleDur = (s > 0 ? s : 60);
-				const secIter = totalMinutes + 1;
-				const totalHours = h + d * 24;
-				const minCycleDur = (m > 0 ? m * 60 : 3600);
-				const minIter = totalHours + 1;
-				const hourCycleDur = (h > 0 ? h * 3600 : 86400);
-				const hourIter = d + 1;
-
 				const BG = FixColor(Options.Background);
 				const Color = FixColor(Options.Color);
 				const ThemeColor = FixColor(QueryObject.t_theme || Options.Color);
@@ -230,34 +221,6 @@ module.exports = async (Request, Result) => {
 				const dWidth = ShowDays ? Math.max(60, daysStr.length * 28) : 0;
 				const totalWidth = 380 + dWidth;
 				const clockX = totalWidth - 80;
-				
-				let secKF = "";
-				if (s > 0) {
-					for (let i = 0; i <= s; i++) {
-						let val = s - i;
-						secKF += `${(i * (100 / s)).toFixed(4)}% { content: "${String(val).padStart(2, '0')}" }\n`;
-					}
-				}else{
-					secKF = `0% { content: "00" }\n100% { content: "00" }\n`;
-				}
-				let minKF = "";
-				if (m > 0) {
-					for (let i = 0; i <= m; i++) {
-						let val = m - i;
-						minKF += `${(i * (100 / m)).toFixed(4)}% { content: "${String(val).padStart(2, '0')}" }\n`;
-					}
-				}else{
-					minKF = `0% { content: "00" }\n100% { content: "00" }\n`;
-				}
-				let hourKF = "";
-				if (h > 0) {
-					for (let i = 0; i <= h; i++) {
-						let val = h - i;
-						hourKF += `${(i * (100 / h)).toFixed(4)}% { content: "${String(val).padStart(2, '0')}" }\n`;
-					}
-				}else{
-					hourKF = `0% { content: "00" }\n100% { content: "00" }\n`;
-				}
 
 				const serverTime = new Date();
 				const sDeg = serverTime.getSeconds() * 6;
@@ -267,7 +230,51 @@ module.exports = async (Request, Result) => {
 				const R = 16;
 				const bgPath = `M${R},0 H${totalWidth - R} Q${totalWidth},0 ${totalWidth},${R} V${160 - R} Q${totalWidth},160 ${totalWidth - R},160 H${R} Q0,160 0,${160 - R} V${R} Q0,0 ${R},0 Z`;
 
-				    const baseX = ShowDays ? 30 + dWidth : 30;
+				const baseX = ShowDays ? 30 + dWidth : 30;
+
+				function buildLayers(V, N, cycleDur, iter, prefix) {
+					let layersHtml = "";
+					let keyframesCss = "";
+
+					for (let i = 0; i < N; i++) {
+						const label = String(i).padStart(2, '0');
+						const kfName = `kf-${prefix}-${i}`;
+
+						let kfBody;
+						if (V === 0) {
+							kfBody = (i === 0)
+								? `0%, 100% { opacity: 1; }`
+								: `0%, 100% { opacity: 0; }`;
+						} else if (i > V) {
+							kfBody = `0%, 100% { opacity: 0; }`;
+						} else {
+							const startPct = ((V - i) / V * 100).toFixed(4);
+							const endPct   = ((V - i + 1) / V * 100).toFixed(4);
+							const endOpacity = (i === 0) ? 1 : 0;
+							kfBody = `0% { opacity: 0; }\n${startPct}% { opacity: 1; }\n${endPct}% { opacity: 0; }\n100% { opacity: ${endOpacity}; }`;
+						}
+
+						keyframesCss += `@keyframes ${kfName} { ${kfBody} }\n`;
+
+						layersHtml += `<span class="num-layer" style="animation-name: ${kfName}; --dur: ${cycleDur}s; --iter: ${iter};">${label}</span>`;
+					}
+
+					return { layersHtml, keyframesCss };
+				}
+				
+				const totalMinutes = m + (h + d * 24) * 60;
+				const secCycleDur = (s > 0 ? s : 60);
+				const secIter = totalMinutes + 1;
+				const secBuild = buildLayers(s, 60, secCycleDur, secIter, "s");
+
+				const totalHours = h + d * 24;
+				const minCycleDur = (m > 0 ? m * 60 : 3600);
+				const minIter = totalHours + 1;
+				const minBuild = buildLayers(m, 60, minCycleDur, minIter, "m");
+
+				const hourCycleDur = (h > 0 ? h * 3600 : 86400);
+				const hourIter = d + 1;
+				const hourBuild = buildLayers(h, 24, hourCycleDur, hourIter, "h");
 
 				return `
 			<svg width="${totalWidth}" height="160" viewBox="0 0 ${totalWidth} 160" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -280,26 +287,39 @@ module.exports = async (Request, Result) => {
 					.digits { font-family: 'JetBrains Mono', monospace; font-size: 42px; font-weight: 700; fill: ${Color}; }
 					.labels { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; fill: ${ThemeColor}; opacity: 0.7; text-transform: uppercase; }
 					
-					.num {
+					.num-static {
 						font-family: 'JetBrains Mono', monospace;
 						font-size: 42px;
 						font-weight: 700;
 						color: ${Color};
 						line-height: 1;
 					}
-					.num-h::after, .num-m::after, .num-s::after {
+
+					.num-wrap {
+						position: relative;
+						width: 60px;
+						height: 50px;
+						overflow: hidden;
+					}
+					.num-layer {
+						position: absolute;
+						top: 0;
+						left: 0;
+						font-family: 'JetBrains Mono', monospace;
+						font-size: 42px;
+						font-weight: 700;
+						color: ${Color};
+						line-height: 1;
+						opacity: 0;
 						animation-duration: var(--dur);
 						animation-iteration-count: var(--iter);
 						animation-timing-function: step-end;
+						animation-fill-mode: forwards;
 					}
 
-					.num-h::after { animation-name: kf-h; }
-					.num-m::after { animation-name: kf-m; }
-					.num-s::after { animation-name: kf-s; }
-
-					@keyframes kf-s { ${secKF} }
-					@keyframes kf-m { ${minKF} }
-					@keyframes kf-h { ${hourKF} }
+					${secBuild.keyframesCss}
+					${minBuild.keyframesCss}
+					${hourBuild.keyframesCss}
 					
 					.hand { transform-origin: ${clockX}px 80px; stroke: ${ThemeColor}; stroke-linecap: round; }
 					.hand-sec { stroke: #FF4B4B; stroke-width: 1.5; animation: rotate-s 60s linear infinite; }
@@ -320,28 +340,28 @@ module.exports = async (Request, Result) => {
 					${ShowDays ? `
 					<foreignObject x="30" y="58" width="${dWidth + 20}" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
-							<span class="num" style="color:${Color};">${d}</span>
+							<span class="num-static">${d}</span>
 							<span class="labels" style="margin-top:-20px; margin-left:4px;">d</span>
 						</div>
 					</foreignObject>` : ""}
 
 					<foreignObject x="${baseX + 10}" y="58" width="100" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
-							<span class="num num-h" style="--dur: ${hourCycleDur}s; --iter: ${hourIter}"></span>
+							<div class="num-wrap">${hourBuild.layersHtml}</div>
 							<span class="labels" style="margin-top:-20px; margin-left:4px;">h</span>
 						</div>
 					</foreignObject>
 
 					<foreignObject x="${baseX + 85}" y="58" width="100" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
-							<span class="num num-m" style="--dur: ${minCycleDur}s; --iter: ${minIter}"></span>
+							<div class="num-wrap">${minBuild.layersHtml}</div>
 							<span class="labels" style="margin-top:-20px; margin-left:4px;">m</span>
 						</div>
 					</foreignObject>
 
 					<foreignObject x="${baseX + 155}" y="58" width="100" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
-							<span class="num num-s" style="--dur: ${secCycleDur}s; --iter: ${secIter}"></span>
+							<div class="num-wrap">${secBuild.layersHtml}</div>
 							<span class="labels" style="margin-top:-20px; margin-left:4px;">s</span>
 						</div>
 					</foreignObject>
