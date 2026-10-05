@@ -240,22 +240,20 @@ module.exports = async (Request, Result) => {
 						const label = String(i).padStart(2, '0');
 						const kfName = `kf-${prefix}-${i}`;
 
-						let kfBody;
-						if (V === 0) {
-							kfBody = (i === 0)
-								? `0%, 100% { opacity: 1; }`
-								: `0%, 100% { opacity: 0; }`;
-						} else if (i > V) {
-							kfBody = `0%, 100% { opacity: 0; }`;
+						let startFrac, endFrac;
+						if (i <= V) {
+							startFrac = (V - i) / N;
 						} else {
-							const startPct = ((V - i) / V * 100).toFixed(4);
-							const endPct   = ((V - i + 1) / V * 100).toFixed(4);
-							const endOpacity = (i === 0) ? 1 : 0;
-							kfBody = `0% { opacity: 0; }\n${startPct}% { opacity: 1; }\n${endPct}% { opacity: 0; }\n100% { opacity: ${endOpacity}; }`;
+							startFrac = (V + N - i) / N;
 						}
+						endFrac = startFrac + 1 / N;
+
+						const startPct = (startFrac * 100).toFixed(4);
+						const endPct   = (endFrac * 100).toFixed(4);
+
+						const kfBody = `0% { opacity: 0; }\n${startPct}% { opacity: 1; }\n${endPct}% { opacity: 0; }\n100% { opacity: 0; }`;
 
 						keyframesCss += `@keyframes ${kfName} { ${kfBody} }\n`;
-
 						layersHtml += `<span class="num-layer" style="animation-name: ${kfName}; --dur: ${cycleDur}s; --iter: ${iter};">${label}</span>`;
 					}
 
@@ -263,18 +261,15 @@ module.exports = async (Request, Result) => {
 				}
 				
 				const totalMinutes = m + (h + d * 24) * 60;
-				const secCycleDur = (s > 0 ? s : 60);
 				const secIter = totalMinutes + 1;
-				const secBuild = buildLayers(s, 60, secCycleDur, secIter, "s");
+				const secBuild = buildLayers(s, 60, 60, secIter, "s");
 
 				const totalHours = h + d * 24;
-				const minCycleDur = (m > 0 ? m * 60 : 3600);
 				const minIter = totalHours + 1;
-				const minBuild = buildLayers(m, 60, minCycleDur, minIter, "m");
+				const minBuild = buildLayers(m, 60, 3600, minIter, "m");
 
-				const hourCycleDur = (h > 0 ? h * 3600 : 86400);
 				const hourIter = d + 1;
-				const hourBuild = buildLayers(h, 24, hourCycleDur, hourIter, "h");
+				const hourBuild = buildLayers(h, 24, 86400, hourIter, "h");
 
 				return `
 			<svg width="${totalWidth}" height="160" viewBox="0 0 ${totalWidth} 160" fill="none" xmlns="http://www.w3.org/2000/svg">
