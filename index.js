@@ -334,28 +334,28 @@ module.exports = async (Request, Result) => {
 					<foreignObject x="30" y="38" width="${dWidth + 20}" height="80">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<span class="num-static">${d}</span>
-							<span class="labels" style="position:relative; top:-14px; margin-left:4px;">d</span>
+							<span class="labels" style="position:relative;">d</span>
 						</div>
 					</foreignObject>` : ""}
 
 					<foreignObject x="${baseX + 10}" y="38" width="100" height="80">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<span class="num-static">${String(h).padStart(2, '0')}</span>
-							<span class="labels" style="position:relative; top:-14px; margin-left:4px;">h</span>
+							<span class="labels" style="position:relative;">h</span>
 						</div>
 					</foreignObject>
 
 					<foreignObject x="${baseX + 85}" y="38" width="100" height="80">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<span class="num-static">${String(m).padStart(2, '0')}</span>
-							<span class="labels" style="position:relative; top:-14px; margin-left:4px;">m</span>
+							<span class="labels" style="position:relative;">m</span>
 						</div>
 					</foreignObject>
 
 					<foreignObject x="${baseX + 155}" y="38" width="100" height="80">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<div class="num-wrap">${secBuild.layersHtml}</div>
-							<span class="labels" style="position:relative; top:-14px; margin-left:4px;">s</span>
+							<span class="labels" style="position:relative;">s</span>
 						</div>
 					</foreignObject>
 				</g>
