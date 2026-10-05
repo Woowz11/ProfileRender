@@ -232,7 +232,7 @@ module.exports = async (Request, Result) => {
 
 				const baseX = ShowDays ? 30 + dWidth : 30;
 
-				function buildLayers(V, N, cycleDur, iter, prefix) {
+				function buildSecLayers(V, N, cycleDur, iter, prefix) {
 					let layersHtml = "";
 					let keyframesCss = "";
 
@@ -251,7 +251,8 @@ module.exports = async (Request, Result) => {
 						const startPct = (startFrac * 100).toFixed(4);
 						const endPct   = (endFrac * 100).toFixed(4);
 
-						const kfBody = `0% { opacity: 0; }\n${startPct}% { opacity: 1; }\n${endPct}% { opacity: 0; }\n100% { opacity: 0; }`;
+						const endOpacity = (i === 0) ? 1 : 0;
+						const kfBody = `0% { opacity: 0; }\n${startPct}% { opacity: 1; }\n${endPct}% { opacity: 0; }\n100% { opacity: ${endOpacity}; }`;
 
 						keyframesCss += `@keyframes ${kfName} { ${kfBody} }\n`;
 						layersHtml += `<span class="num-layer" style="animation-name: ${kfName}; --dur: ${cycleDur}s; --iter: ${iter};">${label}</span>`;
@@ -259,29 +260,28 @@ module.exports = async (Request, Result) => {
 
 					return { layersHtml, keyframesCss };
 				}
-				
-				const totalMinutes = m + (h + d * 24) * 60;
-				const secIter = totalMinutes + 1;
-				const secBuild = buildLayers(s, 60, 60, secIter, "s");
 
-				const totalHours = h + d * 24;
-				const minIter = totalHours + 1;
-				const minBuild = buildLayers(m, 60, 3600, minIter, "m");
-
-				const hourIter = d + 1;
-				const hourBuild = buildLayers(h, 24, 86400, hourIter, "h");
+				const secIter = TotalSeconds + 1;
+				const secBuild = buildSecLayers(s, 60, 60, secIter, "s");
 
 				return `
 			<svg width="${totalWidth}" height="160" viewBox="0 0 ${totalWidth} 160" fill="none" xmlns="http://www.w3.org/2000/svg">
 				<style>
 					/* <![CDATA[ */
 					@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;800&display=swap');
-					
+
 					.bg-panel { fill: ${BG}; }
 					.title { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 400; letter-spacing: 2px; fill: ${Color}; opacity: 0.6; }
-					.digits { font-family: 'JetBrains Mono', monospace; font-size: 42px; font-weight: 700; fill: ${Color}; }
-					.labels { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; fill: ${ThemeColor}; opacity: 0.7; text-transform: uppercase; }
-					
+					.labels {
+						font-family: 'Inter', sans-serif;
+						font-size: 10px;
+						font-weight: 800;
+						color: ${ThemeColor};
+						fill: ${ThemeColor};
+						opacity: 0.7;
+						text-transform: uppercase;
+					}
+
 					.num-static {
 						font-family: 'JetBrains Mono', monospace;
 						font-size: 42px;
@@ -313,14 +313,12 @@ module.exports = async (Request, Result) => {
 					}
 
 					${secBuild.keyframesCss}
-					${minBuild.keyframesCss}
-					${hourBuild.keyframesCss}
-					
+
 					.hand { transform-origin: ${clockX}px 80px; stroke: ${ThemeColor}; stroke-linecap: round; }
 					.hand-sec { stroke: #FF4B4B; stroke-width: 1.5; animation: rotate-s 60s linear infinite; }
 					.hand-min { stroke-width: 3; opacity: 0.8; animation: rotate-m 3600s linear infinite; }
 					.hand-hour { stroke-width: 4; animation: rotate-h 43200s linear infinite; }
-					
+
 					@keyframes rotate-s { from { transform: rotate(${sDeg}deg); } to { transform: rotate(${sDeg + 360}deg); } }
 					@keyframes rotate-m { from { transform: rotate(${mDeg}deg); } to { transform: rotate(${mDeg + 360}deg); } }
 					@keyframes rotate-h { from { transform: rotate(${hDeg}deg); } to { transform: rotate(${hDeg + 360}deg); } }
@@ -328,36 +326,36 @@ module.exports = async (Request, Result) => {
 				</style>
 
 				<path class="bg-panel" d="${bgPath}" />
-				
+
 				<text x="30" y="45" class="title">${EscapeXML(Title)}</text>
-				
+
 				<g class="digits">
 					${ShowDays ? `
 					<foreignObject x="30" y="58" width="${dWidth + 20}" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
 							<span class="num-static">${d}</span>
-							<span class="labels" style="margin-top:-20px; margin-left:4px;">d</span>
+							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">d</span>
 						</div>
 					</foreignObject>` : ""}
 
 					<foreignObject x="${baseX + 10}" y="58" width="100" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
-							<div class="num-wrap">${hourBuild.layersHtml}</div>
-							<span class="labels" style="margin-top:-20px; margin-left:4px;">h</span>
+							<span class="num-static">${String(h).padStart(2, '0')}</span>
+							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">h</span>
 						</div>
 					</foreignObject>
 
 					<foreignObject x="${baseX + 85}" y="58" width="100" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
-							<div class="num-wrap">${minBuild.layersHtml}</div>
-							<span class="labels" style="margin-top:-20px; margin-left:4px;">m</span>
+							<span class="num-static">${String(m).padStart(2, '0')}</span>
+							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">m</span>
 						</div>
 					</foreignObject>
 
 					<foreignObject x="${baseX + 155}" y="58" width="100" height="60">
 						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
 							<div class="num-wrap">${secBuild.layersHtml}</div>
-							<span class="labels" style="margin-top:-20px; margin-left:4px;">s</span>
+							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">s</span>
 						</div>
 					</foreignObject>
 				</g>
@@ -367,11 +365,11 @@ module.exports = async (Request, Result) => {
 					<circle r="2" fill="${ThemeColor}" />
 					${[0, 90, 180, 270].map(deg => `<line x1="0" y1="-50" x2="0" y2="-42" stroke="${ThemeColor}" transform="rotate(${deg})" stroke-width="2" opacity="0.6"/>`).join('')}
 				</g>
-				
+
 				<line class="hand hand-hour" x1="${clockX}" y1="80" x2="${clockX}" y2="55" />
 				<line class="hand hand-min" x1="${clockX}" y1="80" x2="${clockX}" y2="45" />
 				<line class="hand hand-sec" x1="${clockX}" y1="80" x2="${clockX}" y2="40" />
-				
+
 				<path d="${bgPath}" fill="url(#grad)" opacity="0.1" pointer-events="none" />
 				<defs>
 					<linearGradient id="grad" x1="0" y1="0" x2="${totalWidth}" y2="160" gradientUnits="userSpaceOnUse">
