@@ -331,29 +331,29 @@ module.exports = async (Request, Result) => {
 
 				<g class="digits">
 					${ShowDays ? `
-					<foreignObject x="30" y="58" width="${dWidth + 20}" height="60">
-						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
+					<foreignObject x="30" y="38" width="${dWidth + 20}" height="80">
+						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<span class="num-static">${d}</span>
 							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">d</span>
 						</div>
 					</foreignObject>` : ""}
 
-					<foreignObject x="${baseX + 10}" y="58" width="100" height="60">
-						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
+					<foreignObject x="${baseX + 10}" y="38" width="100" height="80">
+						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<span class="num-static">${String(h).padStart(2, '0')}</span>
 							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">h</span>
 						</div>
 					</foreignObject>
 
-					<foreignObject x="${baseX + 85}" y="58" width="100" height="60">
-						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
+					<foreignObject x="${baseX + 85}" y="38" width="100" height="80">
+						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<span class="num-static">${String(m).padStart(2, '0')}</span>
 							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">m</span>
 						</div>
 					</foreignObject>
 
-					<foreignObject x="${baseX + 155}" y="58" width="100" height="60">
-						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start;">
+					<foreignObject x="${baseX + 155}" y="38" width="100" height="80">
+						<div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:flex-start; padding-top:20px;">
 							<div class="num-wrap">${secBuild.layersHtml}</div>
 							<span class="labels" style="position:relative; top:-20px; margin-left:4px;">s</span>
 						</div>
@@ -363,7 +363,15 @@ module.exports = async (Request, Result) => {
 				<g transform="translate(${clockX}, 80)">
 					<circle r="55" stroke="${ThemeColor}" stroke-width="2" opacity="0.15" fill="white" fill-opacity="0.05" />
 					<circle r="2" fill="${ThemeColor}" />
-					${[0, 90, 180, 270].map(deg => `<line x1="0" y1="-50" x2="0" y2="-42" stroke="${ThemeColor}" transform="rotate(${deg})" stroke-width="2" opacity="0.6"/>`).join('')}
+					${Array.from({ length: 60 }, (_, i) => {
+						const deg = i * 6;
+						const isHour = (i % 5 === 0);
+						const y1 = isHour ? -50 : -50;
+						const y2 = isHour ? -42 : -46;
+						const w  = isHour ? 2 : 1;
+						const op = isHour ? 0.6 : 0.3;
+						return `<line x1="0" y1="${y1}" x2="0" y2="${y2}" stroke="${ThemeColor}" transform="rotate(${deg})" stroke-width="${w}" opacity="${op}"/>`;
+					}).join('')}
 				</g>
 
 				<line class="hand hand-hour" x1="${clockX}" y1="80" x2="${clockX}" y2="55" />
